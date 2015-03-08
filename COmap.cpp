@@ -14,7 +14,7 @@
 
 using namespace std;
 int bin_s = 300;
-int k = 3;
+int k = 4;
 
 /* Data structure to store hashed information */
 
@@ -43,14 +43,45 @@ std::vector<long int> &split(const std::string &s, char delim, std::vector<long 
     return elems;
 }
 
-int main () {
+int main (int argc, char **argv) {
+	int c;
+	char *pEnd;
+
 	std::unordered_map<std::string, std::vector<long int> > kmer_map;
 	std::vector<std::vector<long int> > reads;
 	std::string line;
-	std::ifstream infile("temp.txt");
+	std::ifstream infile("/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps");
 	int line_number = 1;
-
 	
+	/* Parsing arguments */
+	while ((c = getopt (argc, argv, "k:b:")) != -1){
+	    switch (c)
+	      {
+	      case 'k':
+		k = strtol(optarg, &pEnd, 10);
+		if (k<=0){
+			std::cout<<"Please enter integer value greater than 0 for Kmer"<<std::endl;
+			return(-1);
+		}			
+		break;
+
+	      case 'b':
+		bin_s = strtol(optarg, &pEnd, 10);
+		if (bin_s<=0){
+			std::cout<<"Please enter integer value greater than 0 for Bin Size"<<std::endl;
+			return(-1);
+		}
+		break;
+
+	      case '?':
+		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize]"<<std::endl;
+		return 1;
+	      default:
+		return(-1);
+	      }	
+	}
+
+
 	/* Read each line from file */
 	while (std::getline(infile, line)){
 		++line_number;
@@ -90,15 +121,28 @@ int main () {
 		}			
 	}
 	
+/*        long int total_kmers = 0;
 	pair<std::string, std::vector<long int> > me; // what a map<int, int> is made of
 	BOOST_FOREACH(me, kmer_map) {
-	  cout << me.first<<"  :  ";
-	  for(int i =0; i<me.second.size(); i++){
-		  cout << me.second[i]<<"  ";
-	  }
-	  cout <<"\n";
+	  total_kmers = total_kmers + me.second.size();
 	}
+*/	
+        /*std::cout<<"Total Kmers: "<<total_kmers<<std::endl;
+	std::cout<<"No of Kmer with K = "<<k<<" are : "<<kmer_map.size()<<std::endl;
+	std::cout<<"Average number of reads associated: "<<(double)((double)total_kmers/(double)kmer_map.size())<<std::endl;
+	*/
 
+	int count = 1;
+	pair<std::string, std::vector<long int> > me; // what a map<int, int> is made of
+	BOOST_FOREACH(me, kmer_map) {
+	  cout<<count<<" "<<me.second.size()<<endl;
+//	  cout << me.first<<"  :  ";
+//	  for(int i =0; i<me.second.size(); i++){
+//		  cout << me.second[i]<<"  ";		
+//	  }
+		count++;
+	}
+	
 
 	infile.close();
 	return 0;
