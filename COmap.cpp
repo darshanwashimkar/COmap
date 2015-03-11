@@ -41,6 +41,38 @@ std::vector<long int> &split(const std::string &s, char delim, std::vector<long 
     return elems;
 }
 
+/* Print parameters for the run */
+void printParameters(){
+	std::cout<<"==================================================="<<std::endl;
+	std::cout<<"Running with following parameters,";
+	std::cout<<"\nK : "<<k<<std::endl;
+	std::cout<<"Bin size : "<<bin_s<<std::endl;
+	std::cout<<"File : "<<om_file<<std::endl;
+	std::cout<<"==================================================="<<std::endl;	
+}
+
+/* Print realated reads in this form 0 -> 8(1)2(1)9(2)3(4)5(8) */
+void printRelatedReads(std::vector<std::unordered_map<long int, int> > *rel_reads){
+	std::cout<<"==================================================="<<std::endl;
+	for(int i =0; i<rel_reads->size(); i++){
+		cout<<i<<" -> ";
+		for ( auto it = rel_reads->at(i).begin(); it != rel_reads->at(i).end(); ++it ){
+			cout << it->first << "(" << it->second<<")";			
+		}
+		cout << endl;
+	}
+	std::cout<<"==================================================="<<std::endl;
+}
+
+/* Print common kmer */
+void printCommonKmerBetweenReads(std::vector<std::unordered_map<long int, int> > *rel_reads){
+	for(int i =0; i<rel_reads->size(); i++){		
+		for ( auto it = rel_reads->at(i).begin(); it != rel_reads->at(i).end(); ++it ){
+			cout << i << " "<< it->second<<std::endl;			
+		}
+	}	
+}
+
 int main (int argc, char **argv) {
 	int c;
 	char *pEnd;
@@ -90,6 +122,9 @@ int main (int argc, char **argv) {
 		std::cout<<"Usage: %%COmap [-k Kmer] [-b Bin-Size] [-f File-Name]"<<std::endl;
 		return(-1);
 	}
+	
+	/* Print parameters of run */
+//	printParameters();
 
 	/* Read each line from file */
 	while (std::getline(infile, line)){
@@ -161,18 +196,14 @@ int main (int argc, char **argv) {
 		}
 	}	
 	
-	/* Printing related reads */
-	cout<<rel_reads.size()<<endl;
-	for(int i =0; i<rel_reads.size(); i++){
-		cout<<i<<" -> ";
-		for ( auto it = rel_reads.at(i).begin(); it != rel_reads.at(i).end(); ++it ){
-			cout << it->first << "(" << it->second<<")";			
-		}
-		cout << endl;
-	}
+	/* Code to Printing related reads */
+//	printRelatedReads(&rel_reads);
+
+	/* Code to print number of common kmers between reads, R1 <-> R2*/
+	printCommonKmerBetweenReads(&rel_reads);
 
 
-/* To Print statastic */	
+/* To Print statastics */	
 
 /*        long int total_kmers = 0;
 	pair<std::string, std::vector<long int> > me;
