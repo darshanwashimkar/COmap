@@ -11,10 +11,12 @@
 #include <stdlib.h> 
 #include <unordered_map>
 #include <boost/foreach.hpp>
+#include <boost/thread.hpp>
 
 using namespace std;
 int bin_s = 300;
 int k = 3;
+int no_of_threads = 1;
 string om_file = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
 
 /* Quantize the value */
@@ -48,7 +50,7 @@ int readParameters(int argc, char **argv){
 	char *pEnd;
 
 	/* Parsing arguments */
-	while ((c = getopt (argc, argv, "k:b:f:?")) != -1){
+	while ((c = getopt (argc, argv, "k:b:f:t:?")) != -1){
 	    switch (c)
 	      {
 	      case 'k':
@@ -71,6 +73,10 @@ int readParameters(int argc, char **argv){
 		om_file = optarg;
 		break;
 
+	      case 't':
+		no_of_threads = strtol(optarg, &pEnd, 10);
+		break;
+
 	      case '?':
 		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File-Name]"<<std::endl;
 		return(0);
@@ -90,6 +96,7 @@ void printParameters(){
 	std::cout<<"\nK : "<<k<<std::endl;
 	std::cout<<"Bin size : "<<bin_s<<std::endl;
 	std::cout<<"File : "<<om_file<<std::endl;
+	std::cout<<"No of threads : "<<no_of_threads<<std::endl;
 	std::cout<<"==================================================="<<std::endl;	
 }
 
@@ -107,7 +114,7 @@ class RelatedReadsIndex {
 		rel_reads.resize(no_of_reads);
 	}
 
-	void buildRelatedReadsIndex(std::unordered_map<std::string, std::vector<unsigned int> >& kmer_map){
+	void buildRelatedReadsIndex(std::unordered_map<std::string, std::vector<unsigned int> >& kmer_map, unsigned int start, unsigned int end){
 		/* Build data structure of realated reads */
 		std::pair<std::string, std::vector<unsigned int> > pair_to_iter;
 		std::pair<std::unordered_map<unsigned int, unsigned int>::iterator, bool> iter;
@@ -275,7 +282,23 @@ int main (int argc, char **argv) {
 	
 	/* Create realated read index */
 	RelatedReadsIndex RRI(reads.size());
-	RRI.buildRelatedReadsIndex(KRI.kmer_map);
+
+	/* Create threads to parallarize building related read index */
+	std::vector<boost::thread *> thread_pull;
+	
+	/* Find start and end for traversal in kmer index for each thread, and create thread */
+	unsigned int start;
+	unsigned int end;
+	int i;
+	for (i = 0; i < no_of_threads-1; ++i){
+	    start = (i*KRI.kmer_map.size())/no_of_threads;
+	    end = (((i+1)*KRI.kmer_map.size())/no_of_threads)-1;
+	    thread_pull.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end)));
+	}
+	start = (i*KRI.kmer_map.size())/no_of_threads;
+	end = KRI.kmer_map.size();
+	thread_pull.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end)));
+
 
 	/* Code to Printing related reads */
 	RRI.printRelatedReads();	
