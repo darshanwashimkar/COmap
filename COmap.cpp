@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 
 using namespace std;
 int bin_s = 300;
@@ -78,7 +79,7 @@ int readParameters(int argc, char **argv){
 		break;
 
 	      case '?':
-		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File-Name]"<<std::endl;
+		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads]"<<std::endl;
 		return(0);
 	      default:
 		return(-1);
@@ -106,12 +107,16 @@ class RelatedReadsIndex {
 	
 
 	/* Data Structure to store related reads, size of which is equal to number of  number of reads */
-	std::vector<std::unordered_map<unsigned int, unsigned int> > rel_reads;	
+	std::vector<std::unordered_map<unsigned int, unsigned int> > rel_reads;
+	boost::ptr_vector<boost::mutex> mutex_pv;
 
 	public:	
 
 	RelatedReadsIndex(unsigned int no_of_reads){
 		rel_reads.resize(no_of_reads);
+		for(int i = 0; i< no_of_reads; i++){
+			mutex_pv.push_back(new boost::mutex);
+		}
 	}
 
 	void buildRelatedReadsIndex(std::unordered_map<std::string, std::vector<unsigned int> >& kmer_map, unsigned int start, unsigned int end){
@@ -119,10 +124,22 @@ class RelatedReadsIndex {
 		std::pair<std::string, std::vector<unsigned int> > pair_to_iter;
 		std::pair<std::unordered_map<unsigned int, unsigned int>::iterator, bool> iter;
 	
-		// Temp- delete count
-		unsigned int count = 1;
+		/* Variable to make thread process part of kmer index*/
+		unsigned int count = 0;
 		BOOST_FOREACH( pair_to_iter, kmer_map) {		
-	
+
+			/* Check if count is out of specified range */
+			if(count < start){				
+				count++;
+				continue;
+			}	
+			
+			if(count > end){
+				return;
+			}
+
+			count++;
+
 			/* If single read associated with kmer */
 			if(pair_to_iter.second.size() == 1){
 				continue;
@@ -132,6 +149,9 @@ class RelatedReadsIndex {
 				for(int j=i+1; j< pair_to_iter.second.size();j++){	
 					/* (R1-> R5, R5, R8...) | Check such condition */	
 					if( pair_to_iter.second.at(i) ==  pair_to_iter.second.at(j)){ continue; }
+					
+					/* Obtain lock on related reads index (R1->R2,R4) at R1 */
+					mutex_pv[pair_to_iter.second.at(i)].lock();
 
 					/* (R1-> R3, R5, R8...) | Insert R1 to> R3 */						
 					iter = rel_reads[ pair_to_iter.second.at(i)].insert(std::pair<unsigned int,int>(pair_to_iter.second.at(j),1));
@@ -140,21 +160,29 @@ class RelatedReadsIndex {
 					if (iter.second==false) {
 						iter.first->second++; 				   
 					}
-			
+
+					/* unlock on related reads index (R1->R2,R4) at R1 */
+					mutex_pv[pair_to_iter.second.at(i)].unlock();					
+					
+					/* Obtain lock on related reads index (R1->R2,R4) at R2 to insert R2->R1 relation */
+					mutex_pv[pair_to_iter.second.at(j)].lock();
+
 					/* (R1-> R3, R5, R8...) | Insert R3 to> R1 */						
-					iter = rel_reads[ pair_to_iter.second.at(j)].insert(std::pair<unsigned int,int>(pair_to_iter.second.at(i),1));
+					iter = rel_reads[pair_to_iter.second.at(j)].insert(std::pair<unsigned int,int>(pair_to_iter.second.at(i),1));
 
 					/* if key exist then increament count of time relation between R3 -> R1 exists */
 					if (iter.second==false) {
 						iter.first->second++; 				   
 					}
+
+					/* unlock on related reads index (R1->R2,R4) at R2 to after inserting R2->R1 relation */
+					mutex_pv[pair_to_iter.second.at(j)].unlock();
 				}
 			}
 	
-			// Temp code delete then
-			count++;
+			// Temp code delete then			
 			if(count % 10 == 0){
-			cout<<count<<"abc"<<endl;
+			cout<<count<<endl;
 			}
 		}
 	}
@@ -261,7 +289,7 @@ int main (int argc, char **argv) {
 	std::ifstream infile(om_file);
 	if(!infile){
 		std::cout<<"File doesn't exist: "<<om_file<<std::endl;
-		std::cout<<"Usage: %%COmap [-k Kmer] [-b Bin-Size] [-f File-Name]"<<std::endl;
+		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads]"<<std::endl;
 		return(-1);
 	}
 
@@ -284,7 +312,8 @@ int main (int argc, char **argv) {
 	RelatedReadsIndex RRI(reads.size());
 
 	/* Create threads to parallarize building related read index */
-	std::vector<boost::thread *> thread_pull;
+	boost::thread_group thread_pull;
+	
 	
 	/* Find start and end for traversal in kmer index for each thread, and create thread */
 	unsigned int start;
@@ -293,13 +322,14 @@ int main (int argc, char **argv) {
 	for (i = 0; i < no_of_threads-1; ++i){
 	    start = (i*KRI.kmer_map.size())/no_of_threads;
 	    end = (((i+1)*KRI.kmer_map.size())/no_of_threads)-1;
-	    thread_pull.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end)));
+	    thread_pull.create_thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end));
 	}
 	start = (i*KRI.kmer_map.size())/no_of_threads;
 	end = KRI.kmer_map.size();
-	thread_pull.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end)));
-
-
+	thread_pull.create_thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end));
+	
+	thread_pull.join_all();
+	
 	/* Code to Printing related reads */
 	RRI.printRelatedReads();	
 	
