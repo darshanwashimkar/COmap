@@ -181,9 +181,9 @@ class RelatedReadsIndex {
 			}
 	
 			// Temp code delete then			
-			if(count % 10 == 0){
-			cout<<count<<endl;
-			}
+//			if(count % 10 == 0){
+//			cout<<count<<endl;
+//			}
 		}
 	}
 
@@ -331,7 +331,7 @@ int main (int argc, char **argv) {
 	thread_pull.join_all();
 	
 	/* Code to Printing related reads */
-	RRI.printRelatedReads();	
+//	RRI.printRelatedReads();	
 	
 	/* Code to print number of common kmers between reads, R1 <-> R2*/
 	RRI.printCommonKmerBetweenReads();
