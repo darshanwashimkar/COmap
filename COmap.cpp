@@ -12,8 +12,10 @@
 #include <unordered_map>
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/unordered_map.hpp>
+
 
 using namespace std;
 int bin_s = 300;
@@ -106,12 +108,12 @@ void printParameters(){
 
 class RelatedReadsIndex {
 	
-
+	public:	
 	/* Data Structure to store related reads, size of which is equal to number of  number of reads */
 	std::vector<std::vector<unsigned int> > rel_reads;
 	boost::ptr_vector<boost::mutex> mutex_pv;
 
-	public:	
+	
 
 	RelatedReadsIndex(unsigned int no_of_reads){
 		rel_reads.resize(no_of_reads);
@@ -120,8 +122,8 @@ class RelatedReadsIndex {
 		}
 	}
 
-	void buildRelatedReadsIndex(std::unordered_map<std::string, std::vector<unsigned int> >& kmer_map, unsigned int start, unsigned int end){
-		std::cout<<boost::this_thread::get_id()<<"Done with thread"<<std::endl;
+	void buildRelatedReadsIndex(std::unordered_map<std::string, std::vector<unsigned int> >& kmer_map, unsigned int start, unsigned int end){		
+
 		/* Build data structure of realated reads */
 		std::pair<std::string, std::vector<unsigned int> > pair_to_iter;
 		std::pair<boost::unordered_map<unsigned int, unsigned int>::iterator, bool> iter;
@@ -204,11 +206,12 @@ class RelatedReadsIndex {
 	}
 
 	/* Print common kmer */
-	void printCommonKmerBetweenReads(){
-		
+	void printCommonKmerBetweenReads(unsigned int start, unsigned int end){		
+		ofstream outfile(std::to_string(start));		
+
 		std::pair<std::unordered_map<unsigned int, unsigned int>::iterator, bool> iter;
 
-		for(int i =0; i<rel_reads.size(); i++){	
+		for(int i = start; i<= end; i++){	
 
 
 			std::unordered_map<unsigned int, unsigned int> temp_map;				
@@ -221,11 +224,12 @@ class RelatedReadsIndex {
 			}
 	
 			for ( auto it = temp_map.begin(); it != temp_map.end(); ++it ){
-				cout << i << " "<< it->second<<std::endl;			
-			}
-		
+				outfile << i << " "<< it->second<<std::endl;			
+			}		
 
 		}	
+
+		outfile.close();
 	}
 		
 };
@@ -312,7 +316,7 @@ int main (int argc, char **argv) {
 	}
 
 	/* Print parameters of run */
-	printParameters();
+//	printParameters();
 
 	/* Data structure to store reads */
 	std::vector<std::vector<unsigned int> > reads;
@@ -321,10 +325,10 @@ int main (int argc, char **argv) {
 	KmerReadIndex KRI;
 	KRI.readFileAndCreateIndex(infile,&reads);
 
-	cout<<"\nDone with mapping Kmers----\n";
+//	cout<<"\nDone with mapping Kmers----\n";
 
 	/* Print Total number of distinct Kmers and average number of reads associated with each Kmers */
-	KRI.printKmerStatastcs();
+//	KRI.printKmerStatastcs();
 	
 	/* Create realated read index */
 	RelatedReadsIndex RRI(reads.size());
@@ -337,7 +341,7 @@ int main (int argc, char **argv) {
 	unsigned int start;
 	unsigned int end;
 	int i;
-	for (i = 0; i < no_of_threads-1; ++i){ std::cout<<boost::this_thread::get_id()<<"Starting thread..."<<std::endl;
+	for (i = 0; i < no_of_threads-1; ++i){ 
 	    start = (i*KRI.kmer_map.size())/no_of_threads;
 	    end = (((i+1)*KRI.kmer_map.size())/no_of_threads)-1;
 	    thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end)));
@@ -356,9 +360,23 @@ int main (int argc, char **argv) {
 	/* Code to Printing related reads */
 //	RRI.printRelatedReads();
 	
-	/* Code to print number of common kmers between reads, R1 <-> R2*/
-	RRI.printCommonKmerBetweenReads();
-	
+	/* Code to print number of common kmers between reads, R1 <-> R2. Multithreading printing values in different files*/
+	thread_pool.erase(thread_pool.begin(),thread_pool.end());
+
+	for (i = 0; i < no_of_threads-1; ++i){
+		start = (i*RRI.rel_reads.size())/no_of_threads;
+		end = (((i+1)*RRI.rel_reads.size())/no_of_threads)-1;
+		thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::printCommonKmerBetweenReads, &RRI, start, end)));
+	}
+	start = (i*RRI.rel_reads.size())/no_of_threads;
+	end = RRI.rel_reads.size() - 1;
+	thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::printCommonKmerBetweenReads, &RRI, start, end)));
+
+	for (i = 0; i < no_of_threads; ++i){
+		thread_pool.at(i)->join();
+		delete thread_pool.at(i);
+	}
+
 
 //	int count = 1;
 //	pair<std::string, std::vector<long int> > me; // what a map<int, int> is made of

@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-with open("3kmer_dist", "r") as ins:
+with open("../3_kmer", "r") as ins:
     array = []
     
     for line in ins:
