@@ -13,6 +13,7 @@
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <stdint.h>
 
 class KmerReadIndex;
 
@@ -21,7 +22,8 @@ int bin_s = 300;
 int k = 3;
 int no_of_threads = 1;
 string om_file = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
-int NUMBER_OF_BLOCKS = 10;
+int NUMBER_OF_BLOCKS = 100;
+uint8_t MIN_RREADS = 2;
 
 /* Quantize the value */
 void quantize(unsigned int *val, int *bin_size){
@@ -139,7 +141,7 @@ class KmerReadIndex{
 			
 				while(head+k <= elems.size()){
 					string kmer = "";
-					for(int i = 0; i < k; i++){
+					for(unsigned int i = 0; i < k; i++){
 						kmer = kmer + " "+std::to_string(elems.at(head + i));					
 					}
 				
@@ -182,14 +184,14 @@ class RelatedReadsIndex {
 	
 	public:	
 	/* Data Structure to store related reads, size of which is equal to number of  number of reads */
-	std::vector<std::unordered_map<unsigned int, unsigned int> > rel_reads;	
+	std::vector<std::unordered_map<unsigned int, uint8_t> > rel_reads;	
 	boost::ptr_vector<boost::mutex> mutex_pv;
 
 	
 
 	RelatedReadsIndex(unsigned int no_of_reads){
 		rel_reads.resize(no_of_reads);
-		for(int i = 0; i< no_of_reads; i++){
+		for(unsigned int i = 0; i< no_of_reads; i++){
 			mutex_pv.push_back(new boost::mutex);
 		}
 	}
@@ -197,7 +199,7 @@ class RelatedReadsIndex {
 	void buildRelatedReadsIndex(KmerReadIndex &KRI, std::pair<unsigned int,unsigned int> read_block, std::pair<unsigned int,unsigned int> kmer_block){
 		/* Build data structure of realated reads */
 		std::pair<std::string, std::vector<unsigned int> > pair_to_iter;
-		std::pair<std::unordered_map<unsigned int, unsigned int>::iterator, bool> iter;
+		std::pair<std::unordered_map<unsigned int, uint8_t>::iterator, bool> iter;
 	
 		/* Variable to make thread process part of kmer index*/
 		unsigned int count = 0;
@@ -220,7 +222,7 @@ class RelatedReadsIndex {
 				continue;
 			}
 
-			for(int i =0; i< pair_to_iter.second.size()-1; i++){			
+			for(unsigned int i =0; i< pair_to_iter.second.size()-1; i++){			
 				for(int j=i+1; j< pair_to_iter.second.size();j++){	
 					/* (R1-> R5, R5, R8...) | Check such condition */	
 					if( pair_to_iter.second.at(i) ==  pair_to_iter.second.at(j)){ continue; }
@@ -235,7 +237,7 @@ class RelatedReadsIndex {
 						mutex_pv[pair_to_iter.second.at(i)].lock();
 
 						/* (R1-> R3, R5, R8...) | Insert R1 to> R3 */						
-						iter = rel_reads[ pair_to_iter.second.at(i)].insert(std::pair<unsigned int,int>(pair_to_iter.second.at(j),1));
+						iter = rel_reads[ pair_to_iter.second.at(i)].insert(std::pair<unsigned int,uint8_t>(pair_to_iter.second.at(j),1));
 
 						/* if key exist then increament count of time relation between R1 -> R3 exists */
 						if (iter.second==false) {
@@ -256,7 +258,7 @@ class RelatedReadsIndex {
 						mutex_pv[pair_to_iter.second.at(j)].lock();
 
 						/* (R1-> R3, R5, R8...) | Insert R3 to> R1 */						
-						iter = rel_reads[pair_to_iter.second.at(j)].insert(std::pair<unsigned int,int>(pair_to_iter.second.at(i),1));
+						iter = rel_reads[pair_to_iter.second.at(j)].insert(std::pair<unsigned int,uint8_t>(pair_to_iter.second.at(i),1));
 
 						/* if key exist then increament count of time relation between R3 -> R1 exists */
 						if (iter.second==false) {
@@ -271,12 +273,28 @@ class RelatedReadsIndex {
 	
 		}
 	}
+	
+	void trimRelatedReadIndex(std::pair<unsigned int,unsigned int> read_block){		
+		
+		for(unsigned int i = read_block.first; i < read_block.second; i++){			
+			for (auto it = rel_reads.at(i).begin(); it != rel_reads.at(i).end();) {
+			   if(it->second <= MIN_RREADS) {
+			      it = rel_reads.at(i).erase(it);
+			   }
+			   else
+			      it++;
+			}
 
+		}
+
+		
+	}	
+	
 	std::vector< std::pair<unsigned int,unsigned int> > createBlocks(unsigned int total_size, unsigned int no_of_blocks){
 		std::vector< std::pair<unsigned int,unsigned int> > blocks;
 		unsigned int head;
 		unsigned int tail;
-		for(int i = 0; i < no_of_blocks -1 ; i++){
+		for(unsigned int i = 0; i < no_of_blocks -1 ; i++){
 			head = (total_size/no_of_blocks) * i;
 			tail = (total_size/no_of_blocks) * (i+1);
 			blocks.push_back(std::make_pair(head,tail));
@@ -303,7 +321,7 @@ class RelatedReadsIndex {
 	/* Print realated reads in this form 0 -> 8(1)2(1)9(2)3(4)5(8) */
 	void printRelatedReads(){
 		std::cout<<"==================================================="<<std::endl;
-		for(int i =0; i<rel_reads.size(); i++){
+		for(unsigned int i =0; i<rel_reads.size(); i++){
 			cout<<i<<" -> ";
 			for ( auto it = rel_reads.at(i).begin(); it != rel_reads.at(i).end(); ++it ){
 				cout << it->first << "(" << it->second<<")";			
@@ -313,6 +331,15 @@ class RelatedReadsIndex {
 		std::cout<<"==================================================="<<std::endl;
 	}
 
+	/* Print number of comman kmers between reads */
+	void printNumberCommanKmerBetweenReads(){
+		for(unsigned int i =0; i<rel_reads.size(); i++){
+			for(auto kv : rel_reads[i]) {
+				cout<<i<<" "<<(unsigned)kv.second<<endl;
+			}
+		}
+	}
+	
 	/* Print common kmer */
 	void printCommonKmerBetweenReads(unsigned int start, unsigned int end){		
 		ofstream outfile(std::to_string(start));		
@@ -401,18 +428,20 @@ int main (int argc, char **argv) {
 		kmer_blocks = RRI.createBlocks(KRI.kmer_map.size(), no_of_threads);
 		for(int j =0; j < kmer_blocks.size(); j++){
 			thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex,  &RRI, KRI, read_blocks.at(i), kmer_blocks.at(j))));
-		}			
+		}
 		
 		/* Join threads */
-		for (k = 0; k < no_of_threads; ++k){
-			thread_pool.at(k)->join();
-			delete thread_pool.at(k);
-		}					
+		for (k = 0; k < no_of_threads; k++){
+			thread_pool.at(k)->join();			
+		}		
+	
+		/* To reduce the size of related read data structure */					
+		RRI.trimRelatedReadIndex(read_blocks.at(i));
 	}
 
 
 	/* Code to Printing related reads */
-	RRI.printRelatedReads();
+	RRI.printNumberCommanKmerBetweenReads();
 
 
 
