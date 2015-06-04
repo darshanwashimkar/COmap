@@ -2,10 +2,11 @@ CXX = g++
 
 CFLAGS = -lboost_system -lboost_thread
 
-all: COmap
+all: bin/COmap
 
-COmap:
-	$(CXX) --std=c++11 $(CFLAGS) -g COmap.cpp -o COmap
+bin/COmap:
+	mkdir bin
+	$(CXX) --std=c++11 $(CFLAGS) -g src/COmap.cpp -o bin/COmap
 
 clean:
-	rm -rf COmap
+	rm -rf bin
