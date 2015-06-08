@@ -2,18 +2,14 @@
  *  	Author: Darshan Washimkar
  *	About:  COmap is a program that correct error in optical mapping data
  */
+
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <string>
-#include <algorithm>
-#include <sstream>
-#include <stdlib.h> 
 #include <unordered_map>
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
-#include <stdint.h>
 
 class KmerReadIndex;
 
@@ -22,8 +18,8 @@ int bin_s = 300;
 int k = 3;
 int no_of_threads = 1;
 string om_file = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
-int NUMBER_OF_BLOCKS = 150;
-uint8_t MIN_RREADS = 2;
+int NUMBER_OF_BLOCKS = 20;
+uint8_t MIN_RREADS = 4;
 
 /* Quantize the value */
 void quantize(unsigned int *val, int *bin_size){
@@ -224,15 +220,20 @@ class RelatedReadsIndex {
 
 			for(unsigned int i =0; i< pair_to_iter.second.size()-1; i++){			
 				for(int j=i+1; j< pair_to_iter.second.size();j++){	
+
+
 					/* (R1-> R5, R5, R8...) | Check such condition */	
 					if( pair_to_iter.second.at(i) ==  pair_to_iter.second.at(j)){ continue; }
 					
 					else if(pair_to_iter.second.at(i) <  pair_to_iter.second.at(j)){
+
+
 						/* Check indexed read is in slot location */						
 						if((pair_to_iter.second.at(i) < read_block.first) || (pair_to_iter.second.at(i) >= read_block.second)){
 							continue;
 						}
 
+						
 						/* Obtain lock on related reads index (R1->R2,R4) at R1 */
 						mutex_pv[pair_to_iter.second.at(i)].lock();
 
@@ -272,11 +273,20 @@ class RelatedReadsIndex {
 			}
 	
 		}
+		
+		//temp Code
+		cout<<"Done with itteration"<<endl;
 	}
 	
 	void trimRelatedReadIndex(std::pair<unsigned int,unsigned int> read_block){		
+
 		
-		for(unsigned int i = read_block.first; i < read_block.second; i++){			
+		for(unsigned int i = read_block.first; i < read_block.second; i++){		
+
+			if(rel_reads.at(i).empty()){
+			   continue;
+			}
+	
 			for (auto it = rel_reads.at(i).begin(); it != rel_reads.at(i).end();) {
 			   if(it->second <= MIN_RREADS) {
 			      it = rel_reads.at(i).erase(it);
@@ -284,10 +294,7 @@ class RelatedReadsIndex {
 			   else
 			      it++;
 			}
-
 		}
-
-		
 	}	
 	
 	std::vector< std::pair<unsigned int,unsigned int> > createBlocks(unsigned int total_size, unsigned int no_of_blocks){
@@ -421,20 +428,26 @@ int main (int argc, char **argv) {
 	read_blocks = RRI.createBlocks(RRI.rel_reads.size(), NUMBER_OF_BLOCKS);
 		
 	for(int i =0; i < read_blocks.size(); i++){
+		
 		/* Create threads to parallarize building related read index */
 		std::vector<boost::thread *> thread_pool;
 
 		std::vector< std::pair<unsigned int, unsigned int> > kmer_blocks;
 		kmer_blocks = RRI.createBlocks(KRI.kmer_map.size(), no_of_threads);
-		for(int j =0; j < kmer_blocks.size(); j++){
-			thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex,  &RRI, KRI, read_blocks.at(i), kmer_blocks.at(j))));
-		}
 		
-		/* Join threads */
-		for (k = 0; k < no_of_threads; k++){
-			thread_pool.at(k)->join();			
-		}		
-	
+		if(no_of_threads == 1){
+			RRI.buildRelatedReadsIndex(KRI, read_blocks.at(i), kmer_blocks.at(0));
+		}
+		else{
+			for(int j =0; j < no_of_threads; j++){
+				thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex,  &RRI, KRI, read_blocks.at(i), kmer_blocks.at(j))));
+			}
+			
+			/* Join threads */
+			for (k = 0; k < no_of_threads; k++){
+				thread_pool.at(k)->join();			
+			}		
+		}
 		/* To reduce the size of related read data structure */					
 		RRI.trimRelatedReadIndex(read_blocks.at(i));
 	}
