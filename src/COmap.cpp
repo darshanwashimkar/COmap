@@ -19,7 +19,7 @@ int k = 3;
 int no_of_threads = 1;
 string om_file = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
 int NUMBER_OF_BLOCKS = 20;
-uint8_t MIN_RREADS = 4;
+uint8_t MIN_RREADS = 2;
 
 /* Quantize the value */
 void quantize(unsigned int *val, int *bin_size){
