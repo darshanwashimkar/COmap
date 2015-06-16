@@ -28,13 +28,7 @@ int main(int argc, char *argv[])
     read2.Enz_name = "SpeI";
     read2.Enz_acr = "1317";
     read2.map_read.assign(readarry2, readarry2+(sizeof(readarry2)/sizeof(readarry2[0])));
-
-    const char* detailed_cout_filename = "./detailed.cout";
     
-    remove(detailed_cout_filename);
-    ofstream det_str(detailed_cout_filename);
-    assert(det_str.good());
-
     ifstream ifs;
    
     
@@ -122,7 +116,6 @@ int main(int argc, char *argv[])
 	    //if(for_score>score_thresh)
 	    //if(for_t_score > t_score_thresh)
 	    for_alignment.output_alignment(cout);
-	    for_alignment.output_alignment(det_str);
 	  }
 	  if(for_score <= rev_score && 
 	     rev_t_score > t_score_thresh &&
@@ -160,11 +153,8 @@ int main(int argc, char *argv[])
 	    cout<<endl<<endl;
 	    	    
 	    rev_alignment.output_alignment(cout);
-	    rev_alignment.output_alignment(det_str);
 	  }
 
-    
-    det_str.close();
   
 
   return 0;  
