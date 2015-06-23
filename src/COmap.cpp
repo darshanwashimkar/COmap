@@ -3,13 +3,7 @@
  *	About:  COmap is a program that correct error in optical mapping data
  */
 
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <unordered_map>
-#include <boost/foreach.hpp>
-#include <boost/thread.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
+#include "COmap.hpp"
 
 class KmerReadIndex;
 
