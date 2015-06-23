@@ -1,4 +1,4 @@
-
+#include <iostream>
 #include <fstream>
 #include <vector>
 #include <unordered_map>
@@ -9,9 +9,8 @@
 class Read{
 
 	public:	
-	std::vector<std::vector<unsigned int> > reads;
+	std::vector<unsigned int> fragments;
 	std::string name;
 	std::string enzyme;
-	std::string something;
-	#include <iostream>
+	std::string something;	
 };
