@@ -2,7 +2,7 @@
 #include "read.hpp"
 #include "KRI.hpp"
 
-extern int k;
+extern int K;
 
 using namespace std;
 
@@ -39,9 +39,9 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 			/* Create K-mers from read */
 			int head = 0;
 		
-			while(head+k <= temp_read.fragments.size()){
+			while(head+K <= temp_read.fragments.size()){
 				string kmer = "";
-				for(unsigned int i = 0; i < k; i++){
+				for(unsigned int i = 0; i < K; i++){
 					kmer = kmer + " "+std::to_string(temp_read.fragments.at(head + i));					
 				}
 			
@@ -75,6 +75,6 @@ void KmerReadIndex::printKmerStatastcs(){
 	}
 
 	std::cout<<"Total Kmers: "<<total_kmers<<std::endl;
-	std::cout<<"No of Distinct Kmer with K = "<<k<<" are : "<<kmer_map.size()<<std::endl;
+	std::cout<<"No of Distinct Kmer with K = "<<K<<" are : "<<kmer_map.size()<<std::endl;
 	std::cout<<"Average number of reads associated: "<<(double)((double)total_kmers/(double)kmer_map.size())<<std::endl;
 }

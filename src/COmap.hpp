@@ -7,3 +7,6 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 
 std::vector<unsigned int> &split(const std::string &s, char delim, std::vector<unsigned int> &elems, std::string &enzyme, std::string &something);
+
+
+
