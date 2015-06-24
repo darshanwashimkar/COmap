@@ -6,11 +6,4 @@
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 
-class Read{
-
-	public:	
-	std::vector<unsigned int> fragments;
-	std::string name;
-	std::string enzyme;
-	std::string something;	
-};
+std::vector<unsigned int> &split(const std::string &s, char delim, std::vector<unsigned int> &elems, std::string &enzyme, std::string &something);

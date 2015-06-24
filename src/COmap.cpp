@@ -4,8 +4,8 @@
  */
 
 #include "COmap.hpp"
-
-class KmerReadIndex;
+#include "read.hpp"
+#include "KRI.hpp"
 
 using namespace std;
 int bin_s = 300;
@@ -113,85 +113,7 @@ void printParameters(){
 }
 
 
-class KmerReadIndex{
 
-	public:
-
-	/* Data structure to store hashed information of Kmer */
-	std::unordered_map<std::string, std::vector<unsigned int> > kmer_map;
-	
-	void readFileAndCreateIndex(std::ifstream &infile, std::vector<Read> &reads){
-
-		std::string line;
-		int line_number = 1;
-		std::string read_name = "";
-
-		/* Read each line from file */
-		while (std::getline(infile, line)){
-			++line_number;
-		
-			if(line_number+1%3==0){
-				read_name = line;
-				continue;
-			}
-
-			/* Find required line from the file */
-			if(line_number%3==0){
-				Read temp_read;
-				split(line, '\t' , temp_read.fragments, temp_read.enzyme, temp_read.something);
-
-				/* remove all short reads - having read_length <= 15 */
-				if(temp_read.fragments.size()<=15){
-					continue;
-				}				
-
-				temp_read.name = read_name;						
-
-				/* Save reads for later processing */
-				reads.push_back(temp_read);
-		
-				/* Create K-mers from read */
-				int head = 0;
-			
-				while(head+k <= temp_read.fragments.size()){
-					string kmer = "";
-					for(unsigned int i = 0; i < k; i++){
-						kmer = kmer + " "+std::to_string(temp_read.fragments.at(head + i));					
-					}
-				
-					/* Create vectore to store read number corresponding to given kmer */
-					std::vector<unsigned int> read_no(1, (unsigned int)((line_number/3)- 1));
-
-					/* Check if key already exit if not then insert */				
-					std::pair<std::unordered_map<std::string, std::vector<unsigned int> >::iterator, bool> iter;
-					iter = kmer_map.insert (pair<std::string,std::vector<unsigned int> >(kmer,read_no) ); 
-	 
-					/* if key exist then add the read number to the hash map data structure */
-					if (iter.second==false) {
-
-					    iter.first->second.push_back((unsigned int)((line_number/3)- 1));
-					}
-								
-					head++;
-				}
-			}			
-		}			
-	}
-
-	void printKmerStatastcs(){
-
-		/* To Print statastics */	
-		unsigned int total_kmers = 0;
-		pair<std::string, std::vector<unsigned int> > me;
-		BOOST_FOREACH(me, kmer_map) {
-		  total_kmers = total_kmers + me.second.size();
-		}
-
-		std::cout<<"Total Kmers: "<<total_kmers<<std::endl;
-		std::cout<<"No of Distinct Kmer with K = "<<k<<" are : "<<kmer_map.size()<<std::endl;
-		std::cout<<"Average number of reads associated: "<<(double)((double)total_kmers/(double)kmer_map.size())<<std::endl;
-	}
-};
 
 
 class RelatedReadsIndex {
@@ -432,7 +354,7 @@ int main (int argc, char **argv) {
 	KmerReadIndex KRI;
 	KRI.readFileAndCreateIndex(infile, reads);
 
-//	cout<<"\nDone with mapping Kmers----\n";
+
 
 	/* Print Total number of distinct Kmers and average number of reads associated with each Kmers */
 //	KRI.printKmerStatastcs();
@@ -478,76 +400,6 @@ int main (int argc, char **argv) {
 	RRI.printNumberCommanKmerBetweenReads();
 
 
-
-
-
-
-
-
-
-
-
-
-
-//-----------------------------------------------------------------------------------------------------
-
-	/* Create threads to parallarize building related read index */
-//	std::vector<boost::thread *> thread_pool;
-	
-
-	/* Find start and end for traversal in kmer index for each thread, and create thread */
-/*	unsigned int start;
-	unsigned int end;
-	int i;
-	for (i = 0; i < no_of_threads-1; ++i){ 
-	    start = (i*KRI.kmer_map.size())/no_of_threads;
-	    end = (((i+1)*KRI.kmer_map.size())/no_of_threads)-1;
-	    thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end)));
-		
-	}
-	start = (i*KRI.kmer_map.size())/no_of_threads;
-	end = KRI.kmer_map.size();
-	thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::buildRelatedReadsIndex, &RRI, KRI.kmer_map, start, end)));
-	
-	for (i = 0; i < no_of_threads; ++i){
-		thread_pool.at(i)->join();
-		delete thread_pool.at(i);
-	}
-
-	
-	/* Code to Printing related reads */
-//	RRI.printRelatedReads();
-	
-	/* Code to print number of common kmers between reads, R1 <-> R2. Multithreading printing values in different files*/
-/*	thread_pool.erase(thread_pool.begin(),thread_pool.end());
-
-	for (i = 0; i < no_of_threads-1; ++i){
-		start = (i*RRI.rel_reads.size())/no_of_threads;
-		end = (((i+1)*RRI.rel_reads.size())/no_of_threads)-1;
-		thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::printCommonKmerBetweenReads, &RRI, start, end)));
-	}
-	start = (i*RRI.rel_reads.size())/no_of_threads;
-	end = RRI.rel_reads.size() - 1;
-	thread_pool.push_back(new boost::thread(boost::bind(&RelatedReadsIndex::printCommonKmerBetweenReads, &RRI, start, end)));
-
-	for (i = 0; i < no_of_threads; ++i){
-		thread_pool.at(i)->join();
-		delete thread_pool.at(i);
-	}
-
-
-//	int count = 1;
-//	pair<std::string, std::vector<long int> > me; // what a map<int, int> is made of
-//	BOOST_FOREACH(me, kmer_map) {
-//	  cout<<count<<" "<<me.second.size()<<endl;
-//	  cout << me.first<<"  :  ";
-//	  for(int i =0; i<me.second.size(); i++){
-//		  cout << me.second[i]<<"  ";		
-//	  }
-//		count++;
-//	}
-	
-*/
 	infile.close();
 	return (0);
 }
