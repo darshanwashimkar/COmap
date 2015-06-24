@@ -26,15 +26,31 @@ void quantize(unsigned int *val, int *bin_size){
 
 
 /* split takes read string and convert it into unsigned int vector after quantizing values */
-std::vector<unsigned int> &split(const std::string &s, char delim, std::vector<unsigned int> &elems) {
+std::vector<unsigned int> &split(const std::string &s, char delim, std::vector<unsigned int> &elems, std::string &enzyme, std::string &something) {
     std::stringstream ss(s);
     std::string item;
-    while (std::getline(ss, item, delim)) {
+    int i = 0;
+    while (std::getline(ss, item, delim)) {	
+	/* To get enzyme name */
+	if(i==1){
+		enzyme = item;
+		i++;
+		continue;
+	}
+	/* To get something string of a read */
+	if(i==2){
+		something = item;
+		i++;
+		continue;
+	}
+
 	unsigned int number = (atof(item.c_str())*1000);
 	quantize(&number , &bin_s);
 	if( number > 0){
 		elems.push_back(number);
 	}
+
+	i++;
     }
     return elems;
 }
@@ -104,35 +120,43 @@ class KmerReadIndex{
 	/* Data structure to store hashed information of Kmer */
 	std::unordered_map<std::string, std::vector<unsigned int> > kmer_map;
 	
-	void readFileAndCreateIndex(std::ifstream &infile, std::vector<std::vector<unsigned int> > *reads){
+	void readFileAndCreateIndex(std::ifstream &infile, std::vector<Read> &reads){
 
 		std::string line;
 		int line_number = 1;
-		
+		std::string read_name = "";
+
 		/* Read each line from file */
 		while (std::getline(infile, line)){
 			++line_number;
 		
+			if(line_number+1%3==0){
+				read_name = line;
+				continue;
+			}
+
 			/* Find required line from the file */
 			if(line_number%3==0){
-				std::vector<unsigned int> elems;
-				split(line, '\t' , elems);
+				Read temp_read;
+				split(line, '\t' , temp_read.fragments, temp_read.enzyme, temp_read.something);
 
 				/* remove all short reads - having read_length <= 15 */
-				if(elems.size()<=15){
+				if(temp_read.fragments.size()<=15){
 					continue;
-				}
-				
+				}				
+
+				temp_read.name = read_name;						
+
 				/* Save reads for later processing */
-				reads->push_back(elems);
+				reads.push_back(temp_read);
 		
 				/* Create K-mers from read */
 				int head = 0;
 			
-				while(head+k <= elems.size()){
+				while(head+k <= temp_read.fragments.size()){
 					string kmer = "";
 					for(unsigned int i = 0; i < k; i++){
-						kmer = kmer + " "+std::to_string(elems.at(head + i));					
+						kmer = kmer + " "+std::to_string(temp_read.fragments.at(head + i));					
 					}
 				
 					/* Create vectore to store read number corresponding to given kmer */
@@ -372,11 +396,14 @@ class RelatedReadsIndex {
 
 
 
-void printReadStatastics(std::vector<std::vector<unsigned int> > &reads){
+void printReadStatastics(std::vector<Read> &reads){
 	std::cout<<"Number of reads: "<<reads.size()<<std::endl;
 	double total_read_length = 0;
 	for(int i =0; i < reads.size(); i++){
-		total_read_length += reads[i].size();
+		total_read_length += reads[i].fragments.size();
+		cout<<reads[i].fragments.size()<<"  ";
+		cout<<reads[i].name<<" ";
+		cout<<reads[i].enzyme<<" "<<endl;
 	}
 	std::cout<<"Average size of read: "<<(total_read_length/reads.size())<<std::endl;
 }
@@ -399,11 +426,11 @@ int main (int argc, char **argv) {
 	//printParameters();
 
 	/* Data structure to store reads */
-	std::vector<std::vector<unsigned int> > reads;
+	std::vector<Read> reads;
 	
 	/* Create Kmer - Read index */
 	KmerReadIndex KRI;
-	KRI.readFileAndCreateIndex(infile,&reads);
+	KRI.readFileAndCreateIndex(infile, reads);
 
 //	cout<<"\nDone with mapping Kmers----\n";
 
