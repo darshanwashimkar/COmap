@@ -1,6 +1,3 @@
-#include "COmap.hpp"
-#include "read.hpp"
-#include "KRI.hpp"
 #include "RRI.hpp"
 
 extern uint8_t MIN_RREADS;

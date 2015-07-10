@@ -1,5 +1,3 @@
-#include "COmap.hpp"
-#include "read.hpp"
 #include "KRI.hpp"
 
 extern int K;
@@ -24,14 +22,15 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 		/* Find required line from the file */
 		if(line_number%3==0){
 			Read temp_read;
-			split(line, '\t' , temp_read.fragments, temp_read.enzyme, temp_read.something);
+			std::vector<unsigned int> qfrags;
+			split(line, '\t' , qfrags, temp_read);
 
 			/* remove all short reads - having read_length <= 15 */
-			if(temp_read.fragments.size()<=15){
+			if(qfrags.size()<=15){
 				continue;
 			}				
-
-			temp_read.name = read_name;						
+				
+			temp_read.name = read_name;
 
 			/* Save reads for later processing */
 			reads.push_back(temp_read);
@@ -39,10 +38,10 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 			/* Create K-mers from read */
 			int head = 0;
 		
-			while(head+K <= temp_read.fragments.size()){
+			while(head+K <= qfrags.size()){
 				string kmer = "";
 				for(unsigned int i = 0; i < K; i++){
-					kmer = kmer + " "+std::to_string(temp_read.fragments.at(head + i));					
+					kmer = kmer + " "+std::to_string(qfrags.at(head + i));					
 				}
 			
 				/* Create vectore to store read number corresponding to given kmer */

@@ -1,4 +1,4 @@
-#define _XML_PRINTER_H
+#define _MSL_H
 
 #ifndef __IOSTREAM__
 #include <iostream>
@@ -11,6 +11,7 @@
 #ifndef __CSTDIO__
 #include <cstdio>
 #endif
+
 
 #ifndef __CMATH__
 #include <cmath>
@@ -30,20 +31,6 @@
 
 #ifndef __SGI_STL_ALGORITHM
 #include <algorithm>
-#endif
+#endif 
 
-#ifndef _M_READ_H
-#include "m_read.h"
-#endif
-
-class xml_printer{
-  ofstream of_str;
- public:
-  xml_printer(const char* of_str_name);
-  ~xml_printer();
-  void print_start(); //prints pre-header
-  void print_header();
-  void print_consensus(om_read & ref_map);
-  void print_alignment(rm_alignment& al);
-  void print_finish();
-};
+#define Pi 3.14159265

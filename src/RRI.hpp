@@ -1,4 +1,7 @@
-
+#include <boost/foreach.hpp>
+#include <boost/thread.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
+#include "KRI.hpp"
 
 class RelatedReadsIndex {
 	

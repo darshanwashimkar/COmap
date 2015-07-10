@@ -4,102 +4,8 @@
  */
 
 #include "COmap.hpp"
-#include "read.hpp"
-#include "KRI.hpp"
-#include "RRI.hpp"
 
 using namespace std;
-int BIN_S = 300;
-int K = 3;
-int NO_OF_THREADS = 1;
-string OM_FILE = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
-int NUMBER_OF_BLOCKS = 20;
-uint8_t MIN_RREADS = 2;
-
-/* Quantize the value */
-void quantize(unsigned int *val, int *bin_size){
-    if (*val % *bin_size < *bin_size / 2.0)
-        *val = *val - *val % *bin_size;
-    else
-        *val = *val - *val % *bin_size +  *bin_size;
-    return;
-}
-
-
-/* split takes read string and convert it into unsigned int vector after quantizing values */
-std::vector<unsigned int> &split(const std::string &s, char delim, std::vector<unsigned int> &elems, std::string &enzyme, std::string &something) {
-    std::stringstream ss(s);
-    std::string item;
-    int i = 0;
-    while (std::getline(ss, item, delim)) {	
-	/* To get enzyme name */
-	if(i==1){
-		enzyme = item;
-		i++;
-		continue;
-	}
-	/* To get something string of a read */
-	if(i==2){
-		something = item;
-		i++;
-		continue;
-	}
-
-	unsigned int number = (atof(item.c_str())*1000);
-	quantize(&number , &BIN_S);
-	if( number > 0){
-		elems.push_back(number);
-	}
-
-	i++;
-    }
-    return elems;
-}
-
-/* Read execution parameters from command line */
-int readParameters(int argc, char **argv){
-
-	int c;
-	char *pEnd;
-
-	/* Parsing arguments */
-	while ((c = getopt (argc, argv, "k:b:f:t:?")) != -1){
-	    switch (c)
-	      {
-	      case 'k':
-		K = strtol(optarg, &pEnd, 10);
-		if (K<=0){
-			std::cout<<"Please enter integer value greater than 0 for Kmer"<<std::endl;
-			return(-1);
-		}			
-		break;
-
-	      case 'b':
-		BIN_S = strtol(optarg, &pEnd, 10);
-		if (BIN_S<=0){
-			std::cout<<"Please enter integer value greater than 0 for Bin Size"<<std::endl;
-			return(-1);
-		}
-		break;
-	      
-	      case 'f':
-		OM_FILE = optarg;
-		break;
-
-	      case 't':
-		NO_OF_THREADS = strtol(optarg, &pEnd, 10);
-		break;
-
-	      case '?':
-		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads]"<<std::endl;
-		return(0);
-	      default:
-		return(-1);
-	      }	
-	}
-	
-	return(1);
-}
 
 
 /* Print parameters for the run */
@@ -126,7 +32,13 @@ void printReadStatastics(std::vector<Read> &reads){
 	std::cout<<"Average size of read: "<<(total_read_length/reads.size())<<std::endl;
 }
 
-
+void printReads(std::vector<Read> & reads){
+	cout<<std::cout.precision(3)<<std::fixed;
+	for(int i = 0; i < reads.size(); i++){
+		reads.at(i).printRead();
+		cout<<endl<<endl;
+	}
+}
 
 
 int main (int argc, char **argv) {
@@ -144,7 +56,7 @@ int main (int argc, char **argv) {
 	}
 
 	/* Print parameters of run */
-	//printParameters();
+	printParameters();
 
 	/* Data structure to store reads */
 	std::vector<Read> reads;
@@ -198,7 +110,9 @@ int main (int argc, char **argv) {
 	/* Code to Printing related reads */
 	RRI.printNumberCommanKmerBetweenReads();
 
-
+	/* Print reads */
+	printReads(reads);
+	
 	infile.close();
 	return (0);
 }
