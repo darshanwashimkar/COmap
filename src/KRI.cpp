@@ -14,7 +14,7 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 	while (std::getline(infile, line)){
 		++line_number;
 	
-		if(line_number+1%3==0){
+		if((line_number+1)%3==0){
 			read_name = line;
 			continue;
 		}
@@ -29,7 +29,6 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 			if(qfrags.size()<=15){
 				continue;
 			}				
-				
 			temp_read.name = read_name;
 
 			/* Save reads for later processing */

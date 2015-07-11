@@ -1,5 +1,7 @@
 #include "util.hpp"
 
+using namespace std;
+
 int BIN_S = 300;
 int K = 3;
 int NO_OF_THREADS = 1;
@@ -96,7 +98,37 @@ int readParameters(int argc, char **argv){
 }
 
 
+/* Print parameters for the run */
+void printParameters(){
+	std::cout<<"==================================================="<<std::endl;
+	std::cout<<"Running with following parameters,";
+	std::cout<<"\nK : "<<K<<std::endl;
+	std::cout<<"Bin size : "<<BIN_S<<std::endl;
+	std::cout<<"File : "<<OM_FILE<<std::endl;
+	std::cout<<"No of threads : "<<NO_OF_THREADS<<std::endl;
+	std::cout<<"==================================================="<<std::endl;	
+}
 
+
+void printReadStatastics(std::vector<Read> &reads){
+	std::cout<<"Number of reads: "<<reads.size()<<std::endl;
+	double total_read_length = 0;
+	for(int i =0; i < reads.size(); i++){
+		total_read_length += reads[i].fragments.size();
+		cout<<reads[i].fragments.size()<<"  ";
+		cout<<reads[i].name<<" ";
+		cout<<reads[i].enzyme<<" "<<endl;
+	}
+	std::cout<<"Average size of read: "<<(total_read_length/reads.size())<<std::endl;
+}
+
+void printReads(std::vector<Read> & reads){
+	cout<<std::cout.precision(3)<<std::fixed;
+	for(int i = 0; i < reads.size(); i++){
+		reads.at(i).printRead();
+		cout<<endl<<endl;
+	}
+}
 
 
 

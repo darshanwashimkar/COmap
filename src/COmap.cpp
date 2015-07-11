@@ -8,39 +8,6 @@
 using namespace std;
 
 
-/* Print parameters for the run */
-void printParameters(){
-	std::cout<<"==================================================="<<std::endl;
-	std::cout<<"Running with following parameters,";
-	std::cout<<"\nK : "<<K<<std::endl;
-	std::cout<<"Bin size : "<<BIN_S<<std::endl;
-	std::cout<<"File : "<<OM_FILE<<std::endl;
-	std::cout<<"No of threads : "<<NO_OF_THREADS<<std::endl;
-	std::cout<<"==================================================="<<std::endl;	
-}
-
-
-void printReadStatastics(std::vector<Read> &reads){
-	std::cout<<"Number of reads: "<<reads.size()<<std::endl;
-	double total_read_length = 0;
-	for(int i =0; i < reads.size(); i++){
-		total_read_length += reads[i].fragments.size();
-		cout<<reads[i].fragments.size()<<"  ";
-		cout<<reads[i].name<<" ";
-		cout<<reads[i].enzyme<<" "<<endl;
-	}
-	std::cout<<"Average size of read: "<<(total_read_length/reads.size())<<std::endl;
-}
-
-void printReads(std::vector<Read> & reads){
-	cout<<std::cout.precision(3)<<std::fixed;
-	for(int i = 0; i < reads.size(); i++){
-		reads.at(i).printRead();
-		cout<<endl<<endl;
-	}
-}
-
-
 int main (int argc, char **argv) {
 
 	if(readParameters(argc,argv)<1){
@@ -66,13 +33,12 @@ int main (int argc, char **argv) {
 	KRI.readFileAndCreateIndex(infile, reads);
 
 
-
 	/* Print Total number of distinct Kmers and average number of reads associated with each Kmers */
 //	KRI.printKmerStatastcs();
 	
 	/* Print statastics of the reads of optical mapping data */	
 	printReadStatastics(reads);
-
+	cout<<"---------------------"<<endl;
 	/* Create realated read index */
 	RelatedReadsIndex RRI(reads.size());
 
