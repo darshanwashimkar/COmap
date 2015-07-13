@@ -292,8 +292,8 @@ double poiss_pr(double zeta, int k){
   double log_pr;
   log_pr = -zeta + k*log(zeta) - logGamma(k+1);
   if(!(log_pr<=0)){
-    cout<<"assertion in poiss_pr"<<endl;
-    cout<<"zeta="<<zeta<<" k="<<k<<" log_pr:"<<log_pr<<endl;
+    std::cout<<"assertion in poiss_pr"<<std::endl;
+    std::cout<<"zeta="<<zeta<<" k="<<k<<" log_pr:"<<log_pr<<std::endl;
   }
   assert(log_pr<=0);
   return exp(log_pr);
@@ -302,9 +302,9 @@ double log_poiss_pr(double zeta, int k){
   double log_pr;
   log_pr = -zeta + k*log(zeta) - logGamma(k+1);
   if(!(log_pr<=0.01)){
-    cout<<"assertion in log_poiss_pr:";
-    cout<<"zeta:"<<zeta<<" k:"<<k;
-    cout<<" log_pr:"<<log_pr<<endl;
+    std::cout<<"assertion in log_poiss_pr:";
+    std::cout<<"zeta:"<<zeta<<" k:"<<k;
+    std::cout<<" log_pr:"<<log_pr<<std::endl;
   }
   assert(zeta > 0);
   assert(log_pr<=0.01);
@@ -459,10 +459,10 @@ double logBesselK_semi_int(double nu, double z){
   return res;
 }
 
-double average(const vector<double>& v){
+double average(const std::vector<double>& v){
   double res = 0;
   int vec_size = v.size();
-  for(vector<double>::const_iterator it = v.begin(); it!= v.end(); it++){
+  for(std::vector<double>::const_iterator it = v.begin(); it!= v.end(); it++){
     res += (*it)/vec_size;
   }
   return res;

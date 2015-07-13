@@ -56,23 +56,23 @@ class rm_alignment{
 
  public:
   
-  vector<vector< double > > S; //total score alignment matrix
-  vector<vector< double > > T; //t-score matrix
+  std::vector<std::vector< double > > S; //total score alignment matrix
+  std::vector<std::vector< double > > T; //t-score matrix
   
-  vector<vector< int > > fromi;
-  vector<vector< int > > fromj; //two traceback matrices
+  std::vector<std::vector< int > > fromi;
+  std::vector<std::vector< int > > fromj; //two traceback matrices
 
-  vector<double> s_scores;
-  vector<double> t_scores;
+  std::vector<double> s_scores;
+  std::vector<double> t_scores;
 
   double Smax; //maximum total alignment score
   double Tmax; //t-score of the optimal alignment
 
   scoring_params score_pars;
 
-  vector< int > ref_restr_al_sites; 
+  std::vector< int > ref_restr_al_sites; 
   //contains aligned restr. sites for ref. map
-  vector< int > tar_restr_al_sites; 
+  std::vector< int > tar_restr_al_sites; 
   //contains aligned restr. sites for tar. map
 
   //vector< double > declumped_best_scores;
@@ -108,8 +108,8 @@ class rm_alignment{
   
   double t_score_drop();
 
-  void output_kmers(ostream& out_str);
-  void output_alignment(ostream& out_str);
+  void output_kmers(std::ostream& out_str);
+  void output_alignment(std::ostream& out_str);
 
   int ovlp_size();
 

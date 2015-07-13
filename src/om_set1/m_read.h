@@ -43,20 +43,20 @@
 class om_read{
 
  public:
-  string read_name;
-  string Enz_name;
-  string Enz_acr;
-  vector<double> map_read; //stores the array of rf lengths
+  std::string read_name;
+  std::string Enz_name;
+  std::string Enz_acr;
+  std::vector<double> map_read; //stores the array of rf lengths
 
   //int index;
   
   om_read() {};
-  om_read(string r_name, string r, int ind = 0); //reads the om_read from the lines from the file
-  om_read(vector<double> &read, int id, string name, string Ename , string Eacr);
+  om_read(std::string r_name, std::string r, int ind = 0); //reads the om_read from the lines from the file
+  om_read(std::vector<double> &read, int id, std::string name, std::string Ename , std::string Eacr);
   om_read & operator=(const om_read &read);
   void print();
   void save(const char* f_name);
-  void save(ofstream& of_str);
+  void save(std::ofstream& of_str);
   om_read reverse(); //returns inverse read
   void revert();
   void trimm_start(int num);
@@ -74,11 +74,11 @@ class om_read{
 
 class om_read_collection{
  public:
-  vector<om_read> collection;
+  std::vector<om_read> collection;
   
-  om_read_collection(ifstream& fstr);
+  om_read_collection(std::ifstream& fstr);
   om_read_collection();
-  void load(ifstream& fstr);
+  void load(std::ifstream& fstr);
   void output_lengths();
   void report_identical_reads();
   

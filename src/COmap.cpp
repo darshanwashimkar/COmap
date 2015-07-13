@@ -2,8 +2,10 @@
  *  	Author: Darshan Washimkar
  *	About:  COmap is a program that correct error in optical mapping data
  */
-
-#include "COmap.hpp"
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include "align.h"
 
 using namespace std;
 
@@ -72,6 +74,10 @@ int main (int argc, char **argv) {
 		RRI.trimRelatedReadIndex(read_blocks.at(i));
 	}
 
+
+	/* Align Reads */
+	Aligner aligner;
+	aligner.align(RRI);
 
 	/* Code to Printing related reads */
 	RRI.printNumberCommanKmerBetweenReads();

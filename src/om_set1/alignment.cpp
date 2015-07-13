@@ -88,12 +88,12 @@ localized_gap_alignment(double gap_open, double gap_ext_kb,
   ref_restr_al_sites.clear();
   tar_restr_al_sites.clear();
 
-  vector<double> F;
-  vector<int> fromF;
+  std::vector<double> F;
+  std::vector<int> fromF;
   double E;
   int fromE;
 
-  vector<double> q;
+  std::vector<double> q;
   vector<double> r;
 
   fromi.clear();
@@ -122,12 +122,12 @@ localized_gap_alignment(double gap_open, double gap_ext_kb,
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
   
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){      
       z.push_back(0);
       mminone.push_back(-1);
@@ -633,15 +633,15 @@ double rm_alignment::fit_p_value(sim_table& st){
 }
 */
 
-void rm_alignment::output_kmers(ostream& out_str){
+void rm_alignment::output_kmers(std::ostream& out_str){
 
   int mers = 3; //shortest kmer
   double ref_size_thresh = 2;
   //out_str<<"kmers shared by "<<target_map.read_name;//<<":";
   //out_str<<" and "<<ref_map.read_name<<endl;
 
-  vector<double> ref_tuple;
-  vector<double> tar_tuple;
+  std::vector<double> ref_tuple;
+  std::vector<double> tar_tuple;
 
   for(int i=ref_restr_al_sites.size()-1; i>=0; i--){
     if(i < ref_restr_al_sites.size()-1){//print the gap
@@ -706,7 +706,7 @@ void rm_alignment::output_kmers(ostream& out_str){
   
 }
 
-void rm_alignment::output_alignment(ostream& out_str){
+void rm_alignment::output_alignment(std::ostream& out_str){
   int gap_counter = 0;
   bool s_score_output;
   
@@ -839,8 +839,8 @@ void rm_alignment::fit_alignment(){
   ref_restr_al_sites.clear();
   tar_restr_al_sites.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -863,12 +863,12 @@ void rm_alignment::fit_alignment(){
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
   
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){
       z.push_back(0);
       mminone.push_back(-1);
@@ -1062,8 +1062,8 @@ localized_fit_alignment(int ref_left_ind, int ref_right_ind,
   ref_restr_al_sites.clear();
   tar_restr_al_sites.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -1084,12 +1084,12 @@ localized_fit_alignment(int ref_left_ind, int ref_right_ind,
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
   
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){
       z.push_back(0);
       mminone.push_back(-1);
@@ -1254,10 +1254,10 @@ fast_localized_fit_alignment(int ref_left_ind, int ref_right_ind,
 
   int i, j, g, h, l;
 
-  vector<int> matrix_mask;
-  vector<int> indexj;
-  vector<int> indexj_helper;
-  vector<bool> indexj_mask;
+  std::vector<int> matrix_mask;
+  std::vector<int> indexj;
+  std::vector<int> indexj_helper;
+  std::vector<bool> indexj_mask;
 
   S.clear();
   T.clear();
@@ -1265,8 +1265,8 @@ fast_localized_fit_alignment(int ref_left_ind, int ref_right_ind,
   ref_restr_al_sites.clear();
   tar_restr_al_sites.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -1287,12 +1287,12 @@ fast_localized_fit_alignment(int ref_left_ind, int ref_right_ind,
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
   
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){
       //z.push_back(0);
       z.push_back(minf);
@@ -1487,8 +1487,8 @@ void rm_alignment::fast_fit_alignment(){
   ref_restr_al_sites.clear();
   tar_restr_al_sites.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -1515,8 +1515,8 @@ void rm_alignment::fast_fit_alignment(){
   
     bool alignment_acceptable = true;
 
-    vector<int> tar_al_inds;
-    vector<int> ref_al_inds;
+    std::vector<int> tar_al_inds;
+    std::vector<int> ref_al_inds;
 
     bool alignment_end = false;
     
@@ -1709,15 +1709,15 @@ void rm_alignment::open_end_fit_alignment(){
   int n = ref_map.map_read.size();
   int i, j, g, h, l;
  
-  vector<vector< double > > X;
+  std::vector<std::vector< double > > X;
 
   T.clear();
   
   ref_restr_al_sites.clear();
   tar_restr_al_sites.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -2169,8 +2169,8 @@ void rm_alignment::overlap_alignment(){
 
   s_scores.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -2190,12 +2190,12 @@ void rm_alignment::overlap_alignment(){
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
   
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){
       z.push_back(0);
       mminone.push_back(-1);
@@ -2378,8 +2378,8 @@ void rm_alignment::optimized_overlap_alignment(){
 
   s_scores.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -2399,12 +2399,12 @@ void rm_alignment::optimized_overlap_alignment(){
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
   
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){
       z.push_back(0);
       mminone.push_back(-1);
@@ -2597,8 +2597,8 @@ void rm_alignment::optimized_fit_alignment(){
 
   s_scores.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -2618,12 +2618,12 @@ void rm_alignment::optimized_fit_alignment(){
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
   
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){
       z.push_back(0);
       mminone.push_back(-1);
@@ -2818,15 +2818,15 @@ void rm_alignment::optimized_local_ref_alignment(){
   T.clear();
   S.clear();
 
-  vector<vector<double> > Max_T;
+  std::vector<std::vector<double> > Max_T;
 
   ref_restr_al_sites.clear();
   tar_restr_al_sites.clear();
 
   s_scores.clear();
 
-  vector<double> q;
-  vector<double> r;
+  std::vector<double> q;
+  std::vector<double> r;
 
   fromi.clear();
   fromj.clear();
@@ -2846,12 +2846,12 @@ void rm_alignment::optimized_local_ref_alignment(){
     q.push_back(counter);
   }
 
-  vector<vector< bool > > mminf_matrix; //true if score is mminus inf
+  std::vector<std::vector< bool > > mminf_matrix; //true if score is mminus inf
 
   for(i=0; i<=m; i++){
-    vector<double> z;
-    vector<int> mminone;
-    vector<bool> bmminf;
+    std::vector<double> z;
+    std::vector<int> mminone;
+    std::vector<bool> bmminf;
     for(j=0; j<=n; j++){
       z.push_back(0);
       mminone.push_back(-1);
