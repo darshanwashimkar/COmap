@@ -7,7 +7,7 @@ int K = 3;
 int NO_OF_THREADS = 1;
 std::string OM_FILE = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
 int NUMBER_OF_BLOCKS = 20;
-uint8_t MIN_RREADS = 2;
+uint8_t MIN_RREADS = 3;
 
 
 /* Quantize the value */

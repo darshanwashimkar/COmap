@@ -37,6 +37,10 @@
 #include <algorithm>
 #endif
 
+#ifndef _MSL_H
+#include "msfl.h"
+#endif
+
 
 class scoring_params{
  public:

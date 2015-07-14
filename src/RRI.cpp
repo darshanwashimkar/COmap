@@ -137,9 +137,9 @@ void RelatedReadsIndex::printRelatedReads(){
 	for(unsigned int i =0; i<rel_reads.size(); i++){
 		cout<<i<<" -> ";
 		for ( auto it = rel_reads.at(i).begin(); it != rel_reads.at(i).end(); ++it ){
-			cout << it->first << "(" << it->second<<")";			
+			cout << it->first << "(" << (unsigned)it->second<<")";			
 		}
-		cout << endl;
+		cout <<" size:"<<rel_reads.at(i).size()<< endl;
 	}
 	std::cout<<"==================================================="<<std::endl;
 }

@@ -1,6 +1,5 @@
 #include "msfl.h"
 
-#define pi 3.14156
 
 int int_max(int x, int y){
   if(x>y) return x;

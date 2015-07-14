@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void Aligner::align(RelatedReadsIndex &RRI){
+void Aligner::alignSet(RelatedReadsIndex &RRI){
 
 	double readarry1[] = {4.123, 5.123, 2.315, 4.152, 9.432, 11.212, 8.271, 7.456, 4.564, 9.179, 34.473, 2.682, 13.115, 6.171, 4.170, 22.259, 3.319, 3.281, 7.171, 3.170, 12.259, 9.319, 12.181};
 
@@ -27,8 +27,8 @@ void Aligner::align(RelatedReadsIndex &RRI){
 
 	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);
 	
-	om_read tar_map = read1; //maps.collection[i];
-	om_read for_map = read2; //maps.collection[j];
+	om_read tar_map = read1; 
+	om_read for_map = read2; 
 	om_read rev_map = for_map.reverse();
 
 	rm_alignment for_alignment(tar_map, for_map, sp);
@@ -47,13 +47,32 @@ void Aligner::align(RelatedReadsIndex &RRI){
 	double for_t_score = for_alignment.Tmax;
 	double rev_t_score = rev_alignment.Tmax;
 
-
-
-	//rev_alignment.output_alignment(cout);
-
 	double score_thresh = 25;
 	double t_score_thresh = 8;
 	double t_mult = 0;
 
+
+	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
+		for(int k=for_alignment.ref_restr_al_sites.size()-1; k>=0; k--){
+			if(k!=for_alignment.ref_restr_al_sites.size()-1)
+			std::cout<<" ";
+			std::cout<<for_alignment.ref_restr_al_sites[k];
+			std::cout<<" ";
+			std::cout<<for_alignment.tar_restr_al_sites[k];
+		}
+		cout<<endl<<endl;
+		for_alignment.output_alignment(cout);	
+	}
+	if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
+		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>=0; k--){
+			if(k!=rev_alignment.ref_restr_al_sites.size()-1)
+			std::cout<<" ";
+			std::cout<<rev_alignment.ref_restr_al_sites[k];
+			std::cout<<" ";
+			std::cout<<rev_alignment.tar_restr_al_sites[k];
+		}
+		cout<<endl<<endl;
+		for_alignment.output_alignment(cout);
+	}
 }
 

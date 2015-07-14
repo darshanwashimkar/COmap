@@ -45,6 +45,10 @@
 #include "scoring.h"
 #endif
 
+#ifndef _MSL_H
+#include "msfl.h"
+#endif
+
 //#ifndef _SIM_TABLE_H
 //#include "sim_table.h"
 //#endif

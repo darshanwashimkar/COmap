@@ -77,10 +77,11 @@ int main (int argc, char **argv) {
 
 	/* Align Reads */
 	Aligner aligner;
-	aligner.align(RRI);
+	aligner.alignSet(RRI);
 
 	/* Code to Printing related reads */
 	RRI.printNumberCommanKmerBetweenReads();
+	RRI.printRelatedReads();
 
 	/* Print reads */
 	printReads(reads);
