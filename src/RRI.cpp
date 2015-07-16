@@ -96,7 +96,6 @@ void RelatedReadsIndex::buildRelatedReadsIndex(KmerReadIndex &KRI, std::pair<uns
 
 
 void RelatedReadsIndex::trimRelatedReadIndex(std::pair<unsigned int,unsigned int> read_block){		
-
 	
 	for(unsigned int i = read_block.first; i < read_block.second; i++){		
 
@@ -150,6 +149,16 @@ void RelatedReadsIndex::printNumberCommanKmerBetweenReads(){
 	for(unsigned int i =0; i<rel_reads.size(); i++){
 		for(auto kv : rel_reads[i]) {
 			cout<<i<<" "<<(unsigned)kv.second<<endl;
+		}
+	}
+}
+
+void RelatedReadsIndex::correctReads(std::vector<Read> & reads){
+	for(unsigned int i =0; i<rel_reads.size(); i++){
+		if(rel_reads[i].size()){
+			Aligner aligner(i, rel_reads[i]);
+			aligner.alignSet(reads);
+			
 		}
 	}
 }

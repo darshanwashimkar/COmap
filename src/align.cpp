@@ -8,8 +8,35 @@
 
 using namespace std;
 
-void Aligner::alignSet(RelatedReadsIndex &RRI){
+Aligner::Aligner(unsigned int br, std::unordered_map<unsigned int, uint8_t> &rel_read_map){
+	this->base_read = br;
 
+	for(auto kv : rel_read_map) {
+		this->tar_reads.push_back(kv.first);
+	}
+	
+}
+
+void Aligner::createOMRead(om_read &om_r, Read & r){
+	om_r.read_name = r.name;
+	om_r.Enz_name = r.enzyme;
+	om_r.Enz_acr = r.something;
+	om_r.map_read = r.fragments;
+}
+
+void Aligner::alignSet(std::vector<Read> & reads){
+	om_read br;
+	createOMRead(br, reads.at(this->base_read));
+	
+	for(int i = 0 ; i < this->tar_reads.size(); i++){
+		om_read tr;
+		createOMRead(tr, reads.at(this->tar_reads.at(i)));
+		alignPair(br,tr);
+	}
+}
+
+void Aligner::alignPair(om_read &br, om_read &tr){
+/*	std::cout<<"sssssssss"<<std::endl;
 	double readarry1[] = {4.123, 5.123, 2.315, 4.152, 9.432, 11.212, 8.271, 7.456, 4.564, 9.179, 34.473, 2.682, 13.115, 6.171, 4.170, 22.259, 3.319, 3.281, 7.171, 3.170, 12.259, 9.319, 12.181};
 
 	double readarry2[] = {11.212, 8.271, 7.456, 4.564, 9.179, 34.473, 2.682, 13.115, 6.171, 4.170, 22.259, 3.319, 3.281, 7.171, 3.170, 12.259, 9.319, 12.181, 15.213, 5.122, 11.123, 13.212, 4.123, 5.112};
@@ -30,9 +57,12 @@ void Aligner::alignSet(RelatedReadsIndex &RRI){
 	om_read tar_map = read1; 
 	om_read for_map = read2; 
 	om_read rev_map = for_map.reverse();
-
-	rm_alignment for_alignment(tar_map, for_map, sp);
-	rm_alignment rev_alignment(tar_map, rev_map, sp);
+*/
+// -------------------------------------------------------------------------------	
+	om_read rev_tr = tr.reverse();
+	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);	
+	rm_alignment for_alignment(br, tr, sp);
+	rm_alignment rev_alignment(br, rev_tr, sp);
 
 
 	for_alignment.optimized_overlap_alignment();
@@ -50,7 +80,10 @@ void Aligner::alignSet(RelatedReadsIndex &RRI){
 	double score_thresh = 25;
 	double t_score_thresh = 8;
 	double t_mult = 0;
-
+	
+	std::cout<<"sssssssss"<<std::endl;
+	std::cout<<for_score<<"  " <<rev_score<<std::endl;
+	std::cout<<for_t_score<<"  "<<rev_t_score<<std::endl;
 
 	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
 		for(int k=for_alignment.ref_restr_al_sites.size()-1; k>=0; k--){

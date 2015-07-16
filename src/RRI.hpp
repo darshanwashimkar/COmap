@@ -2,6 +2,8 @@
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 #include "KRI.hpp"
+#include "align.h"
+
 
 class RelatedReadsIndex {
 	
@@ -23,6 +25,9 @@ class RelatedReadsIndex {
 	void trimRelatedReadIndex(std::pair<unsigned int,unsigned int> read_block);
 	std::vector< std::pair<unsigned int,unsigned int> > createBlocks(unsigned int total_size, unsigned int no_of_blocks);
 	void printRelatedReads();
+	/* Scan through the realated read index and correct reads */
+	void correctReads(std::vector<Read> &);
+
 	void printNumberCommanKmerBetweenReads();
 	void printCommonKmerBetweenReads(unsigned int start, unsigned int end);
 		

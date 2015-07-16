@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
-#include "align.h"
+#include "RRI.hpp"
 
 using namespace std;
 
@@ -75,16 +75,13 @@ int main (int argc, char **argv) {
 	}
 
 
-	/* Align Reads */
-	Aligner aligner;
-	aligner.alignSet(RRI);
-
 	/* Code to Printing related reads */
-	RRI.printNumberCommanKmerBetweenReads();
+//	RRI.printNumberCommanKmerBetweenReads();
 	RRI.printRelatedReads();
+	RRI.correctReads(reads);
 
 	/* Print reads */
-	printReads(reads);
+//	printReads(reads);
 	
 	infile.close();
 	return (0);

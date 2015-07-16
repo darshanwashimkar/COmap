@@ -1,3 +1,5 @@
+#define _READ_HPP
+
 #include <iostream>
 #include <vector>
 
