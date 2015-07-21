@@ -20,7 +20,15 @@
 class Aligner{
 	unsigned int base_read;
 	std::vector<unsigned int> tar_reads;
-	std::vector<std::vector<unsigned int>> a_metrix;
+
+	/* Valuev doesn't produce alignment all the pairs hence need to store aligned reads */
+	std::vector<unsigned int> aligned_reads;
+
+	/* pair of "start of alignment in base read" and "difference of adjacent alignemnts" (-1, -1, 2)*/
+	std::vector<std::pair<int, std::vector<int> > > a_diff; 
+
+	std::vector<std::vector< std::vector<int> > > a_metrix;
+
     public:
 	Aligner(unsigned int, std::unordered_map<unsigned int, uint8_t> &);
 
@@ -28,9 +36,12 @@ class Aligner{
 	void alignSet(std::vector<Read> &);
 
 	/* alignPair() aligns the pair of base read and target read */
-	void alignPair(om_read &, om_read &);
+	std::vector< std::vector<int>> alignPair(om_read &, om_read &, unsigned int);
 	
 	/* Helper function to create om_read object from the read object this may not required in later stage*/
 	void createOMRead(om_read &,Read &);
+
+	/* Helper function to print content of aligner object */
+	void print();
 };
 

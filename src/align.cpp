@@ -31,36 +31,18 @@ void Aligner::alignSet(std::vector<Read> & reads){
 	for(int i = 0 ; i < this->tar_reads.size(); i++){
 		om_read tr;
 		createOMRead(tr, reads.at(this->tar_reads.at(i)));
-		alignPair(br,tr);
+		alignPair(br,tr, this->tar_reads.at(i));
 	}
 }
 
-void Aligner::alignPair(om_read &br, om_read &tr){
-/*	std::cout<<"sssssssss"<<std::endl;
-	double readarry1[] = {4.123, 5.123, 2.315, 4.152, 9.432, 11.212, 8.271, 7.456, 4.564, 9.179, 34.473, 2.682, 13.115, 6.171, 4.170, 22.259, 3.319, 3.281, 7.171, 3.170, 12.259, 9.319, 12.181};
-
-	double readarry2[] = {11.212, 8.271, 7.456, 4.564, 9.179, 34.473, 2.682, 13.115, 6.171, 4.170, 22.259, 3.319, 3.281, 7.171, 3.170, 12.259, 9.319, 12.181, 15.213, 5.122, 11.123, 13.212, 4.123, 5.112};
+std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	
-	om_read read1, read2;
-	read1.read_name = "5038535_0_1317";
-	read1.Enz_name = "SpeI";
-	read1.Enz_acr = "1317";
-	read1.map_read.assign(readarry1, readarry1+(sizeof(readarry1)/sizeof(readarry1[0])));
+	std::vector<std::vector<int>> alignment(br.map_read.size());
+	std::pair<int, std::vector<int>> ad;
+	ad.second.resize(br.map_read.size(), 0);
 
-	read2.read_name = "5038579_0_14";
-	read2.Enz_name = "SpeI";
-	read2.Enz_acr = "1317";
-	read2.map_read.assign(readarry2, readarry2+(sizeof(readarry2)/sizeof(readarry2[0])));
-
-	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);
-	
-	om_read tar_map = read1; 
-	om_read for_map = read2; 
-	om_read rev_map = for_map.reverse();
-*/
-// -------------------------------------------------------------------------------	
 	om_read rev_tr = tr.reverse();
-	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);	
+	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 2, 1);
 	rm_alignment for_alignment(br, tr, sp);
 	rm_alignment rev_alignment(br, rev_tr, sp);
 
@@ -85,9 +67,30 @@ void Aligner::alignPair(om_read &br, om_read &tr){
 	std::cout<<for_score<<"  " <<rev_score<<std::endl;
 	std::cout<<for_t_score<<"  "<<rev_t_score<<std::endl;
 
+	int b_ptr = 0;
+
 	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
-		for(int k=for_alignment.ref_restr_al_sites.size()-1; k>=0; k--){
-			if(k!=for_alignment.ref_restr_al_sites.size()-1)
+		
+		if(for_alignment.ref_restr_al_sites.size() > 0){
+			ad.first = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];
+			b_ptr = ad.first;
+			std::cout<<"\n=="<<ad.first<<"\n"<<std::endl;
+		}
+
+		for(int k=for_alignment.ref_restr_al_sites.size()-1; k>0; k--){
+			int ref_diff = for_alignment.ref_restr_al_sites[k-1] - for_alignment.ref_restr_al_sites[k];
+			int tar_diff = for_alignment.tar_restr_al_sites[k-1] - for_alignment.tar_restr_al_sites[k];
+			std::cout<<"  - "<< ref_diff <<"  "<<tar_diff<<std::endl;
+			while(ref_diff>1){
+				ad.second.at(b_ptr) = -1;
+				b_ptr++;
+				ref_diff--;
+			}
+			ad.second.at(b_ptr) = tar_diff;			
+			b_ptr++;
+
+//-----------------
+			if(k!=for_alignment.ref_restr_al_sites.size()-1)	
 			std::cout<<" ";
 			std::cout<<for_alignment.ref_restr_al_sites[k];
 			std::cout<<" ";
@@ -96,7 +99,7 @@ void Aligner::alignPair(om_read &br, om_read &tr){
 		cout<<endl<<endl;
 		for_alignment.output_alignment(cout);	
 	}
-	if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
+	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
 		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>=0; k--){
 			if(k!=rev_alignment.ref_restr_al_sites.size()-1)
 			std::cout<<" ";
@@ -107,5 +110,33 @@ void Aligner::alignPair(om_read &br, om_read &tr){
 		cout<<endl<<endl;
 		for_alignment.output_alignment(cout);
 	}
+	else{
+		return(alignment);
+	}
+
+	a_diff.push_back(ad);
+	aligned_reads.push_back(tar_r_no);
+	print();
+	return(alignment);
 }
 
+
+void Aligner::print(){
+	std::cout<<"\nAligher Object with base read: "<<base_read<<std::endl<<"Target Reads: ";
+	for(int i = 0; i < tar_reads.size(); i++){
+		std::cout<<tar_reads.at(i);
+		if(i != (tar_reads.size() - 1)){
+			std::cout<<", ";
+		}
+	}
+	std::cout<<std::endl<<"Aligned reads and adj difference alighment"<<std::endl;
+
+	for(int i = 0; i < aligned_reads.size(); i++){
+		std::cout<<aligned_reads.at(i)<<" : "<<a_diff.at(i).first<<" - ";
+		for(int j = 0; j <a_diff.at(i).second.size(); j++){
+			std::cout<<a_diff.at(i).second.at(j)<<" ";
+		}
+		std::cout<<std::endl;
+	}	
+	
+}
