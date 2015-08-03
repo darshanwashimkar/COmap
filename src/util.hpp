@@ -1,9 +1,12 @@
+#define _UTIL_HPP
+
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <unistd.h>
 #include <sstream>
 #include "read.hpp"
+
 
 void split(const std::string &s, char delim, std::vector<unsigned int> &elems, Read & read);
 int readParameters(int, char **);

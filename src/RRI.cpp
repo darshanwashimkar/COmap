@@ -87,7 +87,7 @@ void RelatedReadsIndex::buildRelatedReadsIndex(KmerReadIndex &KRI, std::pair<uns
 	}
 	
 	//temp Code
-	cout<<"Done with itteration"<<endl;
+	//cout<<"Done with itteration"<<endl;
 }
 
 

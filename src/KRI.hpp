@@ -2,7 +2,10 @@
 #include <vector>
 #include <unordered_map>
 #include <boost/foreach.hpp>
+
+#ifndef _UTIL_HPP
 #include "util.hpp"
+#endif
 
 class KmerReadIndex{
 

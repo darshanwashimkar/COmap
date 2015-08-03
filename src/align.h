@@ -3,6 +3,7 @@
  *      About:  Alignment related data structure and functions
  *
  */
+#define _ALIGN_H
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -10,6 +11,7 @@
 #include <vector>
 #include <algorithm>
 #include <math.h>
+#include <climits>
 #include "./om_set1/alignment.h"
 #include "./om_set1/msfl.h"
 
@@ -27,6 +29,9 @@ class Aligner{
 	/* pair of "start of alignment in base read" and "difference of adjacent alignemnts" (-1, -1, 2)*/
 	std::vector<std::pair<int, std::vector<int> > > a_diff; 
 
+	/* Keep track of minimum and maximux index in a set of corresponding reads */
+	int min_index, max_index;
+
 	std::vector<std::vector< std::vector<int> > > a_metrix;
 
     public:
@@ -40,6 +45,9 @@ class Aligner{
 	
 	/* Helper function to create om_read object from the read object this may not required in later stage*/
 	void createOMRead(om_read &,Read &);
+
+	/* This method corrects "Indel" errors from aligned set of reads based on output of valuev */
+	void fixIndelErrors();
 
 	/* Helper function to print content of aligner object */
 	void print();

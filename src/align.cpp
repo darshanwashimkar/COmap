@@ -6,6 +6,13 @@
 
 #include "align.h"
 
+extern int BIN_S;
+extern int K;
+extern int NO_OF_THREADS;
+extern std::string OM_FILE;
+extern int NUMBER_OF_BLOCKS;
+extern uint8_t MIN_RREADS;
+
 using namespace std;
 
 Aligner::Aligner(unsigned int br, std::unordered_map<unsigned int, uint8_t> &rel_read_map){
@@ -14,7 +21,8 @@ Aligner::Aligner(unsigned int br, std::unordered_map<unsigned int, uint8_t> &rel
 	for(auto kv : rel_read_map) {
 		this->tar_reads.push_back(kv.first);
 	}
-	
+	min_index = 0;
+	max_index = INT_MAX;
 }
 
 void Aligner::createOMRead(om_read &om_r, Read & r){
@@ -33,6 +41,8 @@ void Aligner::alignSet(std::vector<Read> & reads){
 		createOMRead(tr, reads.at(this->tar_reads.at(i)));
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
+	print();
+	fixIndelErrors();
 }
 
 std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
@@ -42,7 +52,7 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 	ad.second.resize(br.map_read.size(), 0);
 
 	om_read rev_tr = tr.reverse();
-	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 2, 1);
+	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);
 	rm_alignment for_alignment(br, tr, sp);
 	rm_alignment rev_alignment(br, rev_tr, sp);
 
@@ -60,7 +70,7 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 	double rev_t_score = rev_alignment.Tmax;
 
 	double score_thresh = 25;
-	double t_score_thresh = 8;
+	double t_score_thresh = 1;
 	double t_mult = 0;
 	
 	std::cout<<"sssssssss"<<std::endl;
@@ -72,8 +82,12 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
 		
 		if(for_alignment.ref_restr_al_sites.size() > 0){
-			ad.first = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];
-			b_ptr = ad.first;
+			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];
+		     	ad.first = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
+
+			if(b_ptr > this->min_index)
+				min_index = b_ptr;
+
 			std::cout<<"\n=="<<ad.first<<"\n"<<std::endl;
 		}
 
@@ -96,10 +110,16 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 			std::cout<<" ";
 			std::cout<<for_alignment.tar_restr_al_sites[k];
 		}
+
+		if(b_ptr < max_index)
+			max_index = b_ptr;
+
 		cout<<endl<<endl;
 		for_alignment.output_alignment(cout);	
 	}
 	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
+
+//-----------------
 		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>=0; k--){
 			if(k!=rev_alignment.ref_restr_al_sites.size()-1)
 			std::cout<<" ";
@@ -116,7 +136,7 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 
 	a_diff.push_back(ad);
 	aligned_reads.push_back(tar_r_no);
-	print();
+	
 	return(alignment);
 }
 
@@ -139,4 +159,51 @@ void Aligner::print(){
 		std::cout<<std::endl;
 	}	
 	
+}
+
+
+void Aligner::fixIndelErrors(){
+	std::vector<int> cur_read_ptr;
+	for(int i = 0; i < a_diff.size(); i++){
+		cur_read_ptr.push_back(a_diff.at(i).first);
+	}
+	std::cout<<std::endl<<"Min_index: "<<this->min_index<<" Max_index"<<this->max_index<<std::endl;
+
+	std::vector<std::pair<int, int> > max_con_o_t; // varible to keep track of occurrences of fragment overlap
+	for(int b_ptr = min_index; b_ptr < max_index; b_ptr++){
+		std::vector< std::vector<int> > con_o(7); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5] count occurrences
+		for(int j = 0; j < a_diff.size(); j++){
+//			if(a_diff.at(j).second.at(b_ptr) != -1)
+				con_o.at(a_diff.at(j).second.at(b_ptr) + 1).push_back(aligned_reads.at(j));
+		}
+		
+		int max_con_index = -1;
+		int max_con = 0;
+		for(int k = 0; k < con_o.size(); k++){
+			if(con_o.at(k).size() > max_con){
+				max_con_index = k;
+				max_con = con_o.at(k).size();
+			}			
+		}
+		
+		if((max_con_index - 1) == -1){ // if insertion error
+			max_con_o_t.push_back(std::make_pair(max_con_index, max_con));
+		}
+		else if(max_con_o_t.size() > 0){
+			bool same_count = true;
+			for(int n = 0; n < max_con_o_t.size(); n++){
+				if(max_con != max_con_o_t.at(n).second){
+					same_count =  false;
+				}
+			}
+			if(!same_count){
+				continue;
+			}
+			
+		}
+
+		cout<<(max_con_index - 1)<<" "<<max_con<<endl;
+		
+	}	
+	cout<<"Size: "<<a_diff.size()<<"and Size: "<<aligned_reads.size();
 }
