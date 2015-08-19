@@ -38,7 +38,7 @@ class Aligner{
 	Aligner(unsigned int, std::unordered_map<unsigned int, uint8_t> &);
 
 	/* alignSet() aligns targeted reads with base reads and save alignment in a_matrix (alignment matrix) */
-	void alignSet(std::vector<Read> &);
+	void alignSet(std::vector<Read> &, std::vector<Read> &);
 
 	/* alignPair() aligns the pair of base read and target read */
 	std::vector< std::vector<int>> alignPair(om_read &, om_read &, unsigned int);
@@ -47,7 +47,7 @@ class Aligner{
 	void createOMRead(om_read &,Read &);
 
 	/* This method corrects "Indel" errors from aligned set of reads based on output of valuev */
-	void fixIndelErrors();
+	void fixIndelErrors(std::vector<Read> &, std::vector<Read> &);
 
 	/* Helper function to print content of aligner object */
 	void print();

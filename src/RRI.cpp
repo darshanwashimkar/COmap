@@ -1,6 +1,6 @@
 #include "RRI.hpp"
 
-extern uint8_t MIN_RREADS;
+extern int MIN_RREADS;
 
 using namespace std;
 
@@ -153,11 +153,11 @@ void RelatedReadsIndex::printNumberCommanKmerBetweenReads(){
 	}
 }
 
-void RelatedReadsIndex::correctReads(std::vector<Read> & reads){
+void RelatedReadsIndex::correctReads(std::vector<Read> & reads, std::vector<Read> & corrected_reads){
 	for(unsigned int i =0; i<rel_reads.size(); i++){
 		if(rel_reads[i].size()){
 			Aligner aligner(i, rel_reads[i]);
-			aligner.alignSet(reads);
+			aligner.alignSet(reads, corrected_reads);
 			
 		}
 	}

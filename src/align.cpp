@@ -11,7 +11,8 @@ extern int K;
 extern int NO_OF_THREADS;
 extern std::string OM_FILE;
 extern int NUMBER_OF_BLOCKS;
-extern uint8_t MIN_RREADS;
+extern int MIN_RREADS;
+extern int MIN_CONSENSUS;
 
 using namespace std;
 
@@ -32,7 +33,7 @@ void Aligner::createOMRead(om_read &om_r, Read & r){
 	om_r.map_read = r.fragments;
 }
 
-void Aligner::alignSet(std::vector<Read> & reads){
+void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_reads){
 	om_read br;
 	createOMRead(br, reads.at(this->base_read));
 	
@@ -42,7 +43,7 @@ void Aligner::alignSet(std::vector<Read> & reads){
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
 	print();
-	fixIndelErrors();
+	fixIndelErrors(reads, corrected_reads);
 }
 
 std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
@@ -88,7 +89,7 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 			if(b_ptr > this->min_index)
 				min_index = b_ptr;
 
-			std::cout<<"\n=="<<ad.first<<"\n"<<std::endl;
+			std::cout<<"\n=="<<for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1]<<"\n"<<std::endl;
 		}
 
 		for(int k=for_alignment.ref_restr_al_sites.size()-1; k>0; k--){
@@ -162,14 +163,18 @@ void Aligner::print(){
 }
 
 
-void Aligner::fixIndelErrors(){
+void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corrected_reads){
 	std::vector<int> cur_read_ptr;
+	std::vector<double> corrected_base_fragments(reads.at(base_read).fragments.begin(), reads.at(base_read).fragments.begin() + min_index);
+
 	for(int i = 0; i < a_diff.size(); i++){
 		cur_read_ptr.push_back(a_diff.at(i).first);
 	}
 	std::cout<<std::endl<<"Min_index: "<<this->min_index<<" Max_index"<<this->max_index<<std::endl;
 
 	std::vector<std::pair<int, int> > max_con_o_t; // varible to keep track of occurrences of fragment overlap
+	
+	
 	for(int b_ptr = min_index; b_ptr < max_index; b_ptr++){
 		std::vector< std::vector<int> > con_o(7); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5] count occurrences
 		for(int j = 0; j < a_diff.size(); j++){
@@ -186,23 +191,21 @@ void Aligner::fixIndelErrors(){
 			}			
 		}
 		
-		if((max_con_index - 1) == -1){ // if insertion error
-			max_con_o_t.push_back(std::make_pair(max_con_index, max_con));
-		}
-		else if(max_con_o_t.size() > 0){
-			bool same_count = true;
-			for(int n = 0; n < max_con_o_t.size(); n++){
-				if(max_con != max_con_o_t.at(n).second){
-					same_count =  false;
-				}
-			}
-			if(!same_count){
-				continue;
-			}
-			
+		/* Check if alignment satisfies the requirement of minimum consensus between reads */
+		/* Don't correct any error in such type of alignemnt */
+		/* '-2' value in 'max_con_o_t' means there are no consensus as per user entered min_consensus value */
+		if(max_con < MIN_CONSENSUS){
+			max_con_o_t.push_back(std::make_pair(-2, max_con));
+			continue;
 		}
 
-		cout<<(max_con_index - 1)<<" "<<max_con<<endl;
+		/*  */
+
+		if((max_con_index - 1) == -1){ // if insertion error
+			max_con_o_t.push_back(std::make_pair((max_con_index-1), max_con));
+		}
+
+		cout<<(max_con_index - 1)<<" -> "<<max_con<<endl;
 		
 	}	
 	cout<<"Size: "<<a_diff.size()<<"and Size: "<<aligned_reads.size();

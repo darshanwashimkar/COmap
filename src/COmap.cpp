@@ -78,10 +78,15 @@ int main (int argc, char **argv) {
 	/* Code to Printing related reads */
 //	RRI.printNumberCommanKmerBetweenReads();
 	RRI.printRelatedReads();
-	RRI.correctReads(reads);
+	
+	/* Store corrected reads */
+	/* Create Copy for reads */
+	std::vector<Read> corrected_reads(reads);
+
+	RRI.correctReads(reads, corrected_reads);
 
 	/* Print reads */
-//	printReads(reads);
+	printReads(corrected_reads);
 	
 	infile.close();
 	return (0);

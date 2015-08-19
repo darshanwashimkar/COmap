@@ -26,8 +26,7 @@ class RelatedReadsIndex {
 	std::vector< std::pair<unsigned int,unsigned int> > createBlocks(unsigned int total_size, unsigned int no_of_blocks);
 	void printRelatedReads();
 	/* Scan through the realated read index and correct reads */
-	void correctReads(std::vector<Read> &);
-
+	void correctReads(std::vector<Read> &, std::vector<Read> &);
 	void printNumberCommanKmerBetweenReads();
 	void printCommonKmerBetweenReads(unsigned int start, unsigned int end);
 		

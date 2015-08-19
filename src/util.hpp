@@ -20,4 +20,4 @@ extern int K;
 extern int NO_OF_THREADS;
 extern std::string OM_FILE;
 extern int NUMBER_OF_BLOCKS;
-extern uint8_t MIN_RREADS;
+extern int MIN_RREADS;
