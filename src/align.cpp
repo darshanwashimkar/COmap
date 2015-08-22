@@ -42,14 +42,19 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		createOMRead(tr, reads.at(this->tar_reads.at(i)));
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
-	print();
+	//print();
+	printMultiAlignInfo();
 	fixIndelErrors(reads, corrected_reads);
 }
 
-std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
+void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	
 	std::vector<std::vector<int>> alignment(br.map_read.size());
 	std::pair<int, std::vector<int>> ad;
+
+	AdjAlignmentDifference alignment_data;
+	alignment_data.diff.resize(br.map_read.size(), 0);
+
 	ad.second.resize(br.map_read.size(), 0);
 
 	om_read rev_tr = tr.reverse();
@@ -74,9 +79,8 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 	double t_score_thresh = 1;
 	double t_mult = 0;
 	
-	std::cout<<"sssssssss"<<std::endl;
-	std::cout<<for_score<<"  " <<rev_score<<std::endl;
-	std::cout<<for_t_score<<"  "<<rev_t_score<<std::endl;
+//	std::cout<<for_score<<"  " <<rev_score<<std::endl;
+//	std::cout<<for_t_score<<"  "<<rev_t_score<<std::endl;
 
 	int b_ptr = 0;
 
@@ -85,37 +89,42 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 		if(for_alignment.ref_restr_al_sites.size() > 0){
 			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];
 		     	ad.first = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
+			alignment_data.start = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
 
 			if(b_ptr > this->min_index)
 				min_index = b_ptr;
 
-			std::cout<<"\n=="<<for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1]<<"\n"<<std::endl;
+//			std::cout<<"\n=="<<for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1]<<"\n"<<std::endl;
 		}
 
 		for(int k=for_alignment.ref_restr_al_sites.size()-1; k>0; k--){
 			int ref_diff = for_alignment.ref_restr_al_sites[k-1] - for_alignment.ref_restr_al_sites[k];
 			int tar_diff = for_alignment.tar_restr_al_sites[k-1] - for_alignment.tar_restr_al_sites[k];
-			std::cout<<"  - "<< ref_diff <<"  "<<tar_diff<<std::endl;
+//			std::cout<<"  - "<< ref_diff <<"  "<<tar_diff<<std::endl;
 			while(ref_diff>1){
 				ad.second.at(b_ptr) = -1;
+				alignment_data.diff.at(b_ptr) = -1;
 				b_ptr++;
 				ref_diff--;
 			}
-			ad.second.at(b_ptr) = tar_diff;			
+			ad.second.at(b_ptr) = tar_diff;
+			alignment_data.diff.at(b_ptr) = tar_diff;
+
 			b_ptr++;
 
 //-----------------
-			if(k!=for_alignment.ref_restr_al_sites.size()-1)	
+/*			if(k!=for_alignment.ref_restr_al_sites.size()-1)	
 			std::cout<<" ";
 			std::cout<<for_alignment.ref_restr_al_sites[k];
 			std::cout<<" ";
 			std::cout<<for_alignment.tar_restr_al_sites[k];
+*/
 		}
 
 		if(b_ptr < max_index)
 			max_index = b_ptr;
 
-		cout<<endl<<endl;
+		//cout<<endl<<endl;
 		for_alignment.output_alignment(cout);	
 	}
 	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
@@ -132,13 +141,16 @@ std::vector<std::vector<int>> Aligner::alignPair(om_read &br, om_read &tr, unsig
 		for_alignment.output_alignment(cout);
 	}
 	else{
-		return(alignment);
+		return;
 	}
+
+	alignment_data.a_read = tar_r_no;
+	multi_align_info.push_back(alignment_data);
 
 	a_diff.push_back(ad);
 	aligned_reads.push_back(tar_r_no);
 	
-	return(alignment);
+	return;
 }
 
 
@@ -158,7 +170,26 @@ void Aligner::print(){
 			std::cout<<a_diff.at(i).second.at(j)<<" ";
 		}
 		std::cout<<std::endl;
-	}	
+	}		
+}
+
+void Aligner::printMultiAlignInfo(){	
+	cout<<endl<<"------------------------"<<endl;
+	cout<<"Base Read: "<<base_read<<endl;	
+	cout<<"Target Reads: ";
+	for(int i = 0; i < tar_reads.size(); i++)
+		cout<<tar_reads.at(i)<<" ";
+	cout<<endl;
+	cout<<"Printing alignment info"<<endl;
+
+	for(int i = 0; i < multi_align_info.size(); i++){
+		cout<<"Base read aligned to: "<<multi_align_info.at(i).a_read<<endl;
+		cout<<"Starting at: "<<multi_align_info.at(i).start<<" -> ";
+		for(int j = 0; j < multi_align_info.at(i).diff.size(); j++){
+			cout<<multi_align_info.at(i).diff.at(j)<<" ";
+		}
+		cout<<endl;
+	}
 	
 }
 
@@ -170,7 +201,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	for(int i = 0; i < a_diff.size(); i++){
 		cur_read_ptr.push_back(a_diff.at(i).first);
 	}
-	std::cout<<std::endl<<"Min_index: "<<this->min_index<<" Max_index"<<this->max_index<<std::endl;
+	std::cout<<std::endl<<"Min_index: "<<this->min_index<<" Max_index "<<this->max_index<<std::endl;
 
 	std::vector<std::pair<int, int> > max_con_o_t; // varible to keep track of occurrences of fragment overlap
 	
@@ -205,8 +236,8 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 			max_con_o_t.push_back(std::make_pair((max_con_index-1), max_con));
 		}
 
-		cout<<(max_con_index - 1)<<" -> "<<max_con<<endl;
+//		cout<<(max_con_index - 1)<<" -> "<<max_con<<endl;
 		
 	}	
-	cout<<"Size: "<<a_diff.size()<<"and Size: "<<aligned_reads.size();
+	//cout<<"Size: "<<a_diff.size()<<"and Size: "<<aligned_reads.size();
 }
