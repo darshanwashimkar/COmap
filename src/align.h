@@ -30,17 +30,11 @@ class Aligner{
 	std::vector<unsigned int> tar_reads;
 
 	/* Valuev doesn't produce alignment all the pairs hence need to store aligned reads */
-//	std::vector<unsigned int> aligned_reads;
-
-	/* pair of "start of alignment in base read" and "difference of adjacent alignemnts" (-1, -1, 2)*/
+	/* pair of "start of alignment in base read" and "difference of adjacent alignemnts" (-1, -1, 2) */
 	std::vector<AdjAlignmentDifference> multi_align_info;
-
-	std::vector<std::pair<int, std::vector<int> > > a_diff;
 
 	/* Keep track of minimum and maximux index in a set of corresponding reads */
 	int min_index, max_index;
-
-	std::vector<std::vector< std::vector<int> > > a_metrix;
 
     public:
 	Aligner(unsigned int, std::unordered_map<unsigned int, uint8_t> &);
@@ -58,7 +52,6 @@ class Aligner{
 	void fixIndelErrors(std::vector<Read> &, std::vector<Read> &);
 
 	/* Helper function to print content of aligner object */
-	void print();
 	void printMultiAlignInfo();
 };
 
