@@ -42,7 +42,7 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		createOMRead(tr, reads.at(this->tar_reads.at(i)));
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
-//	printMultiAlignInfo();
+	//printMultiAlignInfo();
 	fixIndelErrors(reads, corrected_reads);
 }
 
@@ -220,7 +220,9 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 				for(int n = 0; n < con_o.at(max_count_index).size(); n++){
 					t_info = &multi_align_info.at(con_o.at(max_count_index).at(n));
-					add += reads.at(t_info->a_read).fragments.at(t_info->start);
+					add += reads.at(t_info->a_read).fragments.at(t_info->start + m); 
+					// m is added because multiple fragments can align to single fragment from base read. 
+					// So such case we are no updating the start hence we need to add m.
 				}
 				
 				/* Adding average to as corrected read */
@@ -243,11 +245,12 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	}
 
 	/* Update the corrected Read */
-	reads.at(base_read).fragments.erase()
+	reads.at(base_read).fragments.swap(corrected_base_frag);
 
-	cout<<endl;
-	for(int z = 0; z < corrected_base_frag.size(); z ++){
-		cout<<corrected_base_frag.at(z)<<"\t";
+	std::cout<<std::endl;
+	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
+		
+		cout<<reads.at(base_read).fragments.at(z)<<"\t";
 	}
 	cout<<endl;
 /*
