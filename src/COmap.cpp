@@ -25,7 +25,7 @@ int main (int argc, char **argv) {
 	}
 
 	/* Print parameters of run */
-	printParameters();
+//	printParameters();
 
 	/* Data structure to store reads */
 	std::vector<Read> reads;
@@ -39,8 +39,8 @@ int main (int argc, char **argv) {
 //	KRI.printKmerStatastcs();
 	
 	/* Print statastics of the reads of optical mapping data */	
-	printReadStatastics(reads);
-	cout<<"---------------------"<<endl;
+//	printReadStatastics(reads);
+//	cout<<"---------------------"<<endl;
 	/* Create realated read index */
 	RelatedReadsIndex RRI(reads.size());
 
@@ -77,7 +77,7 @@ int main (int argc, char **argv) {
 
 	/* Code to Printing related reads */
 //	RRI.printNumberCommanKmerBetweenReads();
-	RRI.printRelatedReads();
+//	RRI.printRelatedReads();
 	
 	/* Store corrected reads */
 	/* Create Copy for reads */
@@ -86,7 +86,7 @@ int main (int argc, char **argv) {
 	RRI.correctReads(reads, corrected_reads);
 
 	/* Print reads */
-//	printReads(corrected_reads);
+	printReads(reads);
 	
 	infile.close();
 	return (0);

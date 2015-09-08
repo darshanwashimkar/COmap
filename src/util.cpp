@@ -6,7 +6,7 @@ int K = 3;
 int NO_OF_THREADS = 1;
 std::string OM_FILE = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
 int NUMBER_OF_BLOCKS = 20;
-int MIN_RREADS = 3;
+int MIN_COMMON_K_IN_READS = 16;
 int MIN_CONSENSUS = 2;
 
 using namespace std;
@@ -108,6 +108,9 @@ void printParameters(){
 	std::cout<<"Bin size : "<<BIN_S<<std::endl;
 	std::cout<<"File : "<<OM_FILE<<std::endl;
 	std::cout<<"No of threads : "<<NO_OF_THREADS<<std::endl;
+	std::cout<<"NUMBER_OF_BLOCKS : "<<NUMBER_OF_BLOCKS<<std::endl;
+	std::cout<<"MIN_COMMON_K_IN_READS : "<<MIN_COMMON_K_IN_READS<<std::endl;
+	std::cout<<"MIN_CONSENSUS : "<<MIN_CONSENSUS<<std::endl;
 	std::cout<<"==================================================="<<std::endl;	
 }
 
@@ -125,7 +128,7 @@ void printReadStatastics(std::vector<Read> &reads){
 }
 
 void printReads(std::vector<Read> & reads){
-	cout<<std::cout.precision(3)<<std::fixed;
+	cout<<std::setprecision(3)<<std::fixed;
 	for(int i = 0; i < reads.size(); i++){
 		reads.at(i).printRead();
 		cout<<endl<<endl;

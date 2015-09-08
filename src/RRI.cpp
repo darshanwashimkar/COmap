@@ -1,6 +1,6 @@
 #include "RRI.hpp"
 
-extern int MIN_RREADS;
+extern int MIN_COMMON_K_IN_READS;
 
 using namespace std;
 
@@ -104,7 +104,7 @@ void RelatedReadsIndex::trimRelatedReadIndex(std::pair<unsigned int,unsigned int
 		}
 
 		for (auto it = rel_reads.at(i).begin(); it != rel_reads.at(i).end();) {
-		   if(it->second <= MIN_RREADS) {
+		   if(it->second < MIN_COMMON_K_IN_READS) {
 		      it = rel_reads.at(i).erase(it);
 		   }
 		   else

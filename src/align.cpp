@@ -11,7 +11,7 @@ extern int K;
 extern int NO_OF_THREADS;
 extern std::string OM_FILE;
 extern int NUMBER_OF_BLOCKS;
-extern int MIN_RREADS;
+extern int MIN_COMMON_K_IN_READS;
 extern int MIN_CONSENSUS;
 
 using namespace std;
@@ -42,8 +42,13 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		createOMRead(tr, reads.at(this->tar_reads.at(i)));
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
+
 	//printMultiAlignInfo();
-	fixIndelErrors(reads, corrected_reads);
+
+	/* Check if we have minimux number of reads to form consensus */
+	if(multi_align_info.size() >=  MIN_CONSENSUS){	
+		fixIndelErrors(reads, corrected_reads);
+	}
 }
 
 void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
@@ -132,6 +137,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 		}
 		cout<<endl<<endl;
 		for_alignment.output_alignment(cout);
+		return; /* Need to update this */
 	}
 	else{
 		return;
@@ -203,7 +209,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		/* '-2' value in 'consensus' means there are no consensus as per user entered min_consensus value */
 		if(max_count < MIN_CONSENSUS){
 			consensus.push_back(std::make_pair(-2, max_count));
-			corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
+			corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));			
 		}
 
 		// if insertion error
@@ -247,12 +253,15 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	/* Update the corrected Read */
 	reads.at(base_read).fragments.swap(corrected_base_frag);
 
-	std::cout<<std::endl;
+        /* print corrected reads */
+/*	std::cout<<std::endl;
 	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
 		
 		cout<<reads.at(base_read).fragments.at(z)<<"\t";
 	}
 	cout<<endl;
+*/
+
 /*
 	cout<<"-*-*-*-*-*-*"<<endl;
 	// Printing consensus

@@ -20,4 +20,5 @@ extern int K;
 extern int NO_OF_THREADS;
 extern std::string OM_FILE;
 extern int NUMBER_OF_BLOCKS;
-extern int MIN_RREADS;
+extern int MIN_COMMON_K_IN_READS;
+extern int MIN_CONSENSUS;

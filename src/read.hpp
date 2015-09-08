@@ -1,6 +1,7 @@
 #define _READ_HPP
 
 #include <iostream>
+#include <iomanip>
 #include <vector>
 
 class Read{
