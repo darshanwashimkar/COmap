@@ -1,10 +1,18 @@
 #include "RRI.hpp"
 
 extern int MIN_COMMON_K_IN_READS;
+unsigned int count_updated_r = 0;
+
 
 using namespace std;
 
 void RelatedReadsIndex::buildRelatedReadsIndex(KmerReadIndex &KRI, std::pair<unsigned int,unsigned int> read_block, std::pair<unsigned int,unsigned int> kmer_block){
+	
+	/* If nothing to process */
+	if(read_block.first == read_block.second){
+		return;
+	}
+
 	/* Build data structure of realated reads */
 	std::pair<std::string, std::vector<unsigned int> > pair_to_iter;
 	std::pair<std::unordered_map<unsigned int, uint8_t>::iterator, bool> iter;
@@ -30,8 +38,16 @@ void RelatedReadsIndex::buildRelatedReadsIndex(KmerReadIndex &KRI, std::pair<uns
 			continue;
 		}
 
-		for(unsigned int i =0; i< pair_to_iter.second.size()-1; i++){			
-			for(int j=i+1; j< pair_to_iter.second.size();j++){	
+		unsigned int prev_read;
+		for(unsigned int i =0; i< pair_to_iter.second.size()-1; i++){
+
+			/* If same read have multiple k-mers in comman */
+			if((i != 0) && prev_read == pair_to_iter.second.at(i)){
+				continue;
+			}
+			prev_read = pair_to_iter.second.at(i);
+
+			for(unsigned int j=i+1; j< pair_to_iter.second.size();j++){	
 
 
 				/* (R1-> R5, R5, R8...) | Check such condition */	
@@ -54,7 +70,11 @@ void RelatedReadsIndex::buildRelatedReadsIndex(KmerReadIndex &KRI, std::pair<uns
 
 					/* if key exist then increament count of time relation between R1 -> R3 exists */
 					if (iter.second==false) {
-						iter.first->second++; 				   
+						iter.first->second++; 
+						std::cout<<pair_to_iter.second.size()<<" - ";
+						if(pair_to_iter.second.size() == 2)
+							std::cout<<pair_to_iter.second.at(0)<<" "<<pair_to_iter.second.at(1);
+						std::cout<<std::endl;
 					}
 
 					/* unlock on related reads index (R1->R2,R4) at R1 */
@@ -157,10 +177,10 @@ void RelatedReadsIndex::correctReads(std::vector<Read> & reads, std::vector<Read
 	for(unsigned int i =0; i<rel_reads.size(); i++){
 		if(rel_reads[i].size()){
 			Aligner aligner(i, rel_reads[i]);
-			aligner.alignSet(reads, corrected_reads);
-			
+			aligner.alignSet(reads, corrected_reads);			
 		}
 	}
+//	std::cout<<"Count of updated reads:"<<count_updated_r<<std::endl;
 }
 
 

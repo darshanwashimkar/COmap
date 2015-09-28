@@ -13,6 +13,7 @@ extern std::string OM_FILE;
 extern int NUMBER_OF_BLOCKS;
 extern int MIN_COMMON_K_IN_READS;
 extern int MIN_CONSENSUS;
+extern unsigned int count_updated_r;
 
 using namespace std;
 
@@ -76,17 +77,16 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	double for_t_score = for_alignment.Tmax;
 	double rev_t_score = rev_alignment.Tmax;
 
-	double score_thresh = 25;
-	double t_score_thresh = 1;
+	double score_thresh = 16;
+	double t_score_thresh = 0.8;
 	double t_mult = 0;
 	
-//	std::cout<<for_score<<"  " <<rev_score<<std::endl;
-//	std::cout<<for_t_score<<"  "<<rev_t_score<<std::endl;
+//	std::cout<<"fs: \t"<<for_score<<"  \trs: \t" <<rev_score<<std::endl;
+//	std::cout<<"fs_t: \t"<<for_t_score<<"  \t\trs_t: \t"<<rev_t_score<<std::endl;
 
 	int b_ptr = 0;
 
-	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
-		
+	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){		
 		if(for_alignment.ref_restr_al_sites.size() > 0){
 			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];		     	
 			alignment_data.start = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
@@ -127,6 +127,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	}
 	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
 
+		return; /* Need to update this */
 //-----------------
 		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>=0; k--){
 			if(k!=rev_alignment.ref_restr_al_sites.size()-1)
@@ -137,7 +138,6 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 		}
 		cout<<endl<<endl;
 		for_alignment.output_alignment(cout);
-		return; /* Need to update this */
 	}
 	else{
 		return;
@@ -188,9 +188,10 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	}
 
 //	printMultiAlignInfo();
+	int deletion_corrected = 0;
 
 	for(int b_ptr = min_index; b_ptr < this->max_index; b_ptr++){
-		std::vector< std::vector<int> > con_o(7); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5] count occurrences
+		std::vector< std::vector<int> > con_o(10); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5] count occurrences
 		for(int j = 0; j < multi_align_info.size(); j++){
 			con_o.at(multi_align_info.at(j).diff.at(b_ptr) + 1).push_back(j);
 		}
@@ -214,7 +215,8 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 		// if insertion error
 		else if((max_count_index - 1) == -1){ 
-			consensus.push_back(std::make_pair((max_count_index-1), max_count));
+			consensus.push_back(std::make_pair((max_count_index-1), max_count));		
+			deletion_corrected--;	
 		}
 
 		else {
@@ -228,13 +230,17 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 					t_info = &multi_align_info.at(con_o.at(max_count_index).at(n));
 					add += reads.at(t_info->a_read).fragments.at(t_info->start + m); 
 					// m is added because multiple fragments can align to single fragment from base read. 
-					// So such case we are no updating the start hence we need to add m.
+					// So such case we are no updating the start hence we need to add m.					
 				}
 				
 				/* Adding average to as corrected read */
 				corrected_base_frag.push_back(add/con_o.at(max_count_index).size());
+								
 			}
 
+			if(max_count_index > 2){
+				deletion_corrected++;
+			}
 			consensus.push_back(std::make_pair((max_count_index-1), max_count));
 		}
 
@@ -253,14 +259,18 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	/* Update the corrected Read */
 	reads.at(base_read).fragments.swap(corrected_base_frag);
 
+	count_updated_r++; // delete this
+	if(deletion_corrected > 0)
+		std::cout<<base_read<<" "<<deletion_corrected<<std::endl;
+
         /* print corrected reads */
-/*	std::cout<<std::endl;
-	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
-		
-		cout<<reads.at(base_read).fragments.at(z)<<"\t";
-	}
-	cout<<endl;
-*/
+//	std::cout<<std::endl;
+//	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
+//		
+//		cout<<reads.at(base_read).fragments.at(z)<<"\t";
+//	}
+//	cout<<endl;
+
 
 /*
 	cout<<"-*-*-*-*-*-*"<<endl;
@@ -276,3 +286,4 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	cout<<endl<<"-*-*-*-*-*-*"<<endl;
 */
 }
+

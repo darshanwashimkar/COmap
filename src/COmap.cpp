@@ -36,7 +36,7 @@ int main (int argc, char **argv) {
 
 
 	/* Print Total number of distinct Kmers and average number of reads associated with each Kmers */
-//	KRI.printKmerStatastcs();
+	KRI.printKmerStatastcs();
 	
 	/* Print statastics of the reads of optical mapping data */	
 //	printReadStatastics(reads);
@@ -58,7 +58,7 @@ int main (int argc, char **argv) {
 		kmer_blocks = RRI.createBlocks(KRI.kmer_map.size(), NO_OF_THREADS);
 		
 		if(NO_OF_THREADS == 1){
-			RRI.buildRelatedReadsIndex(KRI, read_blocks.at(i), kmer_blocks.at(0));
+			RRI.buildRelatedReadsIndex(KRI, read_blocks.at(i), kmer_blocks.at(0));						
 		}
 		else{
 			for(int j =0; j < NO_OF_THREADS; j++){
@@ -77,7 +77,7 @@ int main (int argc, char **argv) {
 
 	/* Code to Printing related reads */
 //	RRI.printNumberCommanKmerBetweenReads();
-//	RRI.printRelatedReads();
+	RRI.printRelatedReads();
 	
 	/* Store corrected reads */
 	/* Create Copy for reads */

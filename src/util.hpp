@@ -5,6 +5,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <sstream>
+#include <math.h>
 #include "read.hpp"
 
 

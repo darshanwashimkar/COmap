@@ -25,8 +25,8 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 			std::vector<unsigned int> qfrags;
 			split(line, '\t' , qfrags, temp_read);
 
-			/* remove all short reads - having read_length <= 15 */
-			if(qfrags.size()<=15){
+			/* remove all short reads - having read_length < 10 */
+			if(qfrags.size() < 10){
 				continue;
 			}				
 			temp_read.name = read_name;
@@ -70,6 +70,7 @@ void KmerReadIndex::printKmerStatastcs(){
 	pair<std::string, std::vector<unsigned int> > me;
 	BOOST_FOREACH(me, kmer_map) {
 	  total_kmers = total_kmers + me.second.size();
+	  std::cout<<me.first<<std::endl;
 	}
 
 	std::cout<<"Total Kmers: "<<total_kmers<<std::endl;

@@ -37,6 +37,7 @@ class Aligner{
 	int min_index, max_index;
 
     public:
+
 	Aligner(unsigned int, std::unordered_map<unsigned int, uint8_t> &);
 
 	/* alignSet() aligns targeted reads with base reads and save alignment in a_matrix (alignment matrix) */

@@ -6,13 +6,14 @@ int K = 3;
 int NO_OF_THREADS = 1;
 std::string OM_FILE = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
 int NUMBER_OF_BLOCKS = 20;
-int MIN_COMMON_K_IN_READS = 16;
+int MIN_COMMON_K_IN_READS = 3;
 int MIN_CONSENSUS = 2;
+double S_VARIENCE = 0.33;
 
 using namespace std;
 
 
-/* Quantize the value */
+/* Quantize the value  // OLD
 void quantize(unsigned int *val, int *bin_size){
     if (*val % *bin_size < *bin_size / 2.0)
         *val = *val - *val % *bin_size;
@@ -20,6 +21,44 @@ void quantize(unsigned int *val, int *bin_size){
         *val = *val - *val % *bin_size +  *bin_size;
     return;
 }
+
+*/
+
+unsigned int nextRange(unsigned int cur_range, unsigned int bin_size,double s_varience){
+    if(cur_range < 2000)
+        return(cur_range + bin_size);
+    else
+        return(round(((double)(cur_range/1000.0) + 2 * sqrt(((double)cur_range/1000.0) * s_varience))*1000));
+}
+
+
+void quantize(unsigned int *val, unsigned int bin_size, double s_varience){
+	static vector<double> quantizeList;
+	if(*val == 0){
+		return;
+	}
+
+	if(quantizeList.size() == 0){
+		quantizeList.push_back(0.0);
+		quantizeList.push_back(nextRange(0.0, bin_size, s_varience));
+	}
+
+	for(int i = 0; i < quantizeList.size(); i++){ 
+		if(*val < quantizeList[i]){
+			*val = quantizeList[i-1];
+			return;
+		}
+	}
+
+	while(1){
+		quantizeList.push_back(nextRange(quantizeList[quantizeList.size() - 1], bin_size, s_varience));
+		if(*val < quantizeList[quantizeList.size() - 1]){
+			*val = quantizeList[quantizeList.size() - 2];
+			return;
+		}
+	}
+}
+
 
 /* split takes read string and convert it into unsigned int vector after quantizing values */
 void split(const std::string &s, char delim, std::vector<unsigned int> &elems, Read &read) {
@@ -42,7 +81,7 @@ void split(const std::string &s, char delim, std::vector<unsigned int> &elems, R
 	
 	double frag = atof(item.c_str());
 	unsigned int number = ((frag)*1000);
-	quantize(&number , &BIN_S);
+	quantize(&number , BIN_S, S_VARIENCE);
 	if( number > 0){
 		elems.push_back(number);
 		read.fragments.push_back(frag);
