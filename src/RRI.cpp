@@ -70,11 +70,7 @@ void RelatedReadsIndex::buildRelatedReadsIndex(KmerReadIndex &KRI, std::pair<uns
 
 					/* if key exist then increament count of time relation between R1 -> R3 exists */
 					if (iter.second==false) {
-						iter.first->second++; 
-						std::cout<<pair_to_iter.second.size()<<" - ";
-						if(pair_to_iter.second.size() == 2)
-							std::cout<<pair_to_iter.second.at(0)<<" "<<pair_to_iter.second.at(1);
-						std::cout<<std::endl;
+						iter.first->second++; 											
 					}
 
 					/* unlock on related reads index (R1->R2,R4) at R1 */

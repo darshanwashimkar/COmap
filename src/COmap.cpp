@@ -36,7 +36,7 @@ int main (int argc, char **argv) {
 
 
 	/* Print Total number of distinct Kmers and average number of reads associated with each Kmers */
-	KRI.printKmerStatastcs();
+//	KRI.printKmerStatastcs();
 	
 	/* Print statastics of the reads of optical mapping data */	
 //	printReadStatastics(reads);

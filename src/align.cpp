@@ -44,7 +44,7 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
 
-	//printMultiAlignInfo();
+	printMultiAlignInfo();
 
 	/* Check if we have minimux number of reads to form consensus */
 	if(multi_align_info.size() >=  MIN_CONSENSUS){	
@@ -77,8 +77,8 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	double for_t_score = for_alignment.Tmax;
 	double rev_t_score = rev_alignment.Tmax;
 
-	double score_thresh = 16;
-	double t_score_thresh = 0.8;
+	double score_thresh = 25;
+	double t_score_thresh = 8;
 	double t_mult = 0;
 	
 //	std::cout<<"fs: \t"<<for_score<<"  \trs: \t" <<rev_score<<std::endl;
@@ -123,7 +123,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 			max_index = b_ptr;
 
 		//cout<<endl<<endl;
-//		for_alignment.output_alignment(cout);	
+		for_alignment.output_alignment(cout);	
 	}
 	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
 
@@ -174,11 +174,13 @@ void Aligner::printMultiAlignInfo(){
 void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corrected_reads){
 	std::vector<int> cur_read_ptr;
 	std::vector<double> corrected_base_frag(reads.at(base_read).fragments.begin(), reads.at(base_read).fragments.begin() + min_index);
+	std::vector<double> temp_deleted_frag;
 
 //	std::cout<<std::endl<<"Min_index: "<<this->min_index<<" Max_index "<<this->max_index<<std::endl;
 
 	std::vector<std::pair<int, int> > consensus; // varible to keep track of maximux number of fragment overlap, pair<consensus, count>
-	
+	bool consensus_happening = true;
+
 	/* Initialize 'start' fragment according for each target read as per generated alignment to alignment */
 	for(int i = 0; i < min_index; i++){
 		for(int j = 0; j < multi_align_info.size(); j++){
@@ -205,37 +207,54 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 			}
 		}
 		
+
 		/* Check if alignment satisfies the requirement of minimum consensus between reads */
 		/* Don't correct any error in such type of alignemnt */
-		/* '-2' value in 'consensus' means there are no consensus as per user entered min_consensus value */
+		/* '-2' value in 'consensus' means there are no consensus as per user entered min_consensus value */		
 		if(max_count < MIN_CONSENSUS){
+
+			if(temp_deleted_frag.size() != 0){
+				std::copy(temp_deleted_frag.begin(), temp_deleted_frag.end(), std::back_inserter(corrected_base_frag));
+				temp_deleted_frag.clear();
+			}
+
 			consensus.push_back(std::make_pair(-2, max_count));
-			corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));			
+			corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));	
+			consensus_happening = false;		
 		}
 
 		// if insertion error
 		else if((max_count_index - 1) == -1){ 
 			consensus.push_back(std::make_pair((max_count_index-1), max_count));		
+			temp_deleted_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
 			deletion_corrected--;	
 		}
 
-		else {
-			/* Finding average of fragments forming consusus */
-			for(int m = 0; m < (max_count_index-1); m++){
+		else {			
+			temp_deleted_frag.clear();
 
-				double add = 0.0;
-				AdjAlignmentDifference *t_info; // pointer to the alignment_info to make code easy to understand
+			if(consensus_happening){
+				/* Finding average of fragments forming consusus */
+				for(int m = 0; m < (max_count_index-1); m++){
 
-				for(int n = 0; n < con_o.at(max_count_index).size(); n++){
-					t_info = &multi_align_info.at(con_o.at(max_count_index).at(n));
-					add += reads.at(t_info->a_read).fragments.at(t_info->start + m); 
-					// m is added because multiple fragments can align to single fragment from base read. 
-					// So such case we are no updating the start hence we need to add m.					
+					double add = 0.0;
+					AdjAlignmentDifference *t_info; // pointer to the alignment_info to make code easy to understand
+
+					for(int n = 0; n < con_o.at(max_count_index).size(); n++){
+						t_info = &multi_align_info.at(con_o.at(max_count_index).at(n));
+						add += reads.at(t_info->a_read).fragments.at(t_info->start + m); 
+						// m is added because multiple fragments can align to single fragment from base read. 
+						// So such case we are no updating the start hence we need to add m.					
+					}
+					
+					/* Adding average to as corrected read */
+					corrected_base_frag.push_back(add/con_o.at(max_count_index).size());
+									
 				}
-				
-				/* Adding average to as corrected read */
-				corrected_base_frag.push_back(add/con_o.at(max_count_index).size());
-								
+			}
+			else{
+				consensus_happening = true;
+				corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
 			}
 
 			if(max_count_index > 2){
@@ -251,8 +270,9 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		}
 	}
 
+	cout<<"## aaaaaaaaaa ##"<<endl;
 	/* Copy if any remaining fragment-lengths */
-	for(int k = this->max_index; k < reads.at(base_read).fragments.size(); k++){
+	for(int k = this->max_index; k < reads.at(base_read).fragments.size(); k++){		
 		corrected_base_frag.push_back( reads.at(base_read).fragments.at(k) );
 	}
 
@@ -264,15 +284,15 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		std::cout<<base_read<<" "<<deletion_corrected<<std::endl;
 
         /* print corrected reads */
-//	std::cout<<std::endl;
-//	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
-//		
-//		cout<<reads.at(base_read).fragments.at(z)<<"\t";
-//	}
-//	cout<<endl;
+	std::cout<<std::endl;
+	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
+		
+		cout<<reads.at(base_read).fragments.at(z)<<"\t";
+	}
+	cout<<endl;
 
 
-/*
+
 	cout<<"-*-*-*-*-*-*"<<endl;
 	// Printing consensus
 	for(int z = 0; z < consensus.size(); z++ ){
@@ -284,6 +304,6 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	}
 	cout<<" - "<<consensus.size();
 	cout<<endl<<"-*-*-*-*-*-*"<<endl;
-*/
+
 }
 
