@@ -28,7 +28,7 @@ unsigned int nextRange(unsigned int cur_range, unsigned int bin_size,double s_va
     if(cur_range < 2000)
         return(cur_range + bin_size);
     else
-        return(round(((double)(cur_range/1000.0) + 2 * sqrt(((double)cur_range/1000.0) * s_varience))*1000));
+        return(round(((double)(cur_range/1000.0) + 3 * sqrt(((double)cur_range/1000.0) * s_varience))*1000));
 }
 
 
@@ -100,7 +100,7 @@ int readParameters(int argc, char **argv){
 	char *pEnd;
 
 	/* Parsing arguments */
-	while ((c = getopt (argc, argv, "k:b:f:t:?")) != -1){
+	while ((c = getopt (argc, argv, "k:b:f:t:c:?")) != -1){
 	    switch (c)
 	      {
 	      case 'k':
@@ -127,8 +127,12 @@ int readParameters(int argc, char **argv){
 		NO_OF_THREADS = strtol(optarg, &pEnd, 10);
 		break;
 
+	      case 'c':
+		MIN_COMMON_K_IN_READS = strtol(optarg, &pEnd, 10);
+		break;
+
 	      case '?':
-		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads]"<<std::endl;
+		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads] [-c Min Common k between reads]"<<std::endl;
 		return(0);
 	      default:
 		return(-1);
