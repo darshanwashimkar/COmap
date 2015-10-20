@@ -100,7 +100,7 @@ int readParameters(int argc, char **argv){
 	char *pEnd;
 
 	/* Parsing arguments */
-	while ((c = getopt (argc, argv, "k:b:f:t:c:?")) != -1){
+	while ((c = getopt (argc, argv, "k:b:f:t:r:?")) != -1){
 	    switch (c)
 	      {
 	      case 'k':
@@ -127,7 +127,7 @@ int readParameters(int argc, char **argv){
 		NO_OF_THREADS = strtol(optarg, &pEnd, 10);
 		break;
 
-	      case 'c':
+	      case 'r':
 		MIN_COMMON_K_IN_READS = strtol(optarg, &pEnd, 10);
 		break;
 
