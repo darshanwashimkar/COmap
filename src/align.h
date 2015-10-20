@@ -34,7 +34,7 @@ class Aligner{
 	std::vector<AdjAlignmentDifference> multi_align_info;
 
 	/* Keep track of minimum and maximux index in a set of corresponding reads */
-	int min_index, max_index;
+//	int min_index, max_index;
 
     public:
 
@@ -53,6 +53,6 @@ class Aligner{
 	void fixIndelErrors(std::vector<Read> &, std::vector<Read> &);
 
 	/* Helper function to print content of aligner object */
-	void printMultiAlignInfo();
+	void printMultiAlignInfo(std::vector<Read> &);
 };
 

@@ -23,8 +23,8 @@ Aligner::Aligner(unsigned int br, std::unordered_map<unsigned int, uint8_t> &rel
 	for(auto kv : rel_read_map) {
 		this->tar_reads.push_back(kv.first);
 	}
-	min_index = 0;
-	max_index = INT_MAX;
+	//min_index = 0;
+	//max_index = INT_MAX;
 }
 
 void Aligner::createOMRead(om_read &om_r, Read & r){
@@ -44,7 +44,7 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
 
-	//printMultiAlignInfo();
+	//printMultiAlignInfo(reads);
 
 	/* Check if we have minimux number of reads to form consensus */
 	if(multi_align_info.size() >=  MIN_CONSENSUS){	
@@ -60,7 +60,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	alignment_data.diff.resize(br.map_read.size(), 0);
 
 	om_read rev_tr = tr.reverse();
-	scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);
+	scoring_params sp(0.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);
 	rm_alignment for_alignment(br, tr, sp);
 	rm_alignment rev_alignment(br, rev_tr, sp);
 
@@ -78,7 +78,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	double rev_t_score = rev_alignment.Tmax;
 
 	double score_thresh = 25;
-	double t_score_thresh = 8;
+	double t_score_thresh = 0;
 	double t_mult = 0;
 	
 //	std::cout<<"fs: \t"<<for_score<<"  \trs: \t" <<rev_score<<std::endl;
@@ -91,9 +91,9 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];		     	
 			alignment_data.start = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
 
-			if(b_ptr > this->min_index)
+/*			if(b_ptr > this->min_index)
 				min_index = b_ptr;
-
+*/
 //			std::cout<<"\n=="<<for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1]<<"\n"<<std::endl;
 		}
 
@@ -119,9 +119,9 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 */
 		}
 
-		if(b_ptr < max_index)
+/*		if(b_ptr < max_index)
 			max_index = b_ptr;
-
+*/
 		//cout<<endl<<endl;
 		//for_alignment.output_alignment(cout);	
 	}
@@ -150,9 +150,9 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 }
 
 
-void Aligner::printMultiAlignInfo(){	
+void Aligner::printMultiAlignInfo(std::vector<Read> &reads){	
 	cout<<endl<<"------------------------"<<endl;
-	cout<<"Base Read: "<<base_read<<endl;	
+	cout<<"Base Read: "<<base_read<<" "<<reads.at(base_read).name<<endl;	
 	cout<<"Target Reads: ";
 	for(int i = 0; i < tar_reads.size(); i++)
 		cout<<tar_reads.at(i)<<" ";
@@ -160,7 +160,7 @@ void Aligner::printMultiAlignInfo(){
 	cout<<"Printing alignment info"<<endl;
 
 	for(int i = 0; i < multi_align_info.size(); i++){
-		cout<<"Base read aligned to: "<<multi_align_info.at(i).a_read<<endl;
+		cout<<"Base read aligned to: "<<multi_align_info.at(i).a_read<<" "<< reads.at(multi_align_info.at(i).a_read).name<<endl;
 		cout<<"Starting at: "<<multi_align_info.at(i).start<<" -> ";
 		for(int j = 0; j < multi_align_info.at(i).diff.size(); j++){
 			cout<<multi_align_info.at(i).diff.at(j)<<" ";
@@ -173,7 +173,7 @@ void Aligner::printMultiAlignInfo(){
 
 void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corrected_reads){
 	std::vector<int> cur_read_ptr;
-	std::vector<double> corrected_base_frag(reads.at(base_read).fragments.begin(), reads.at(base_read).fragments.begin() + min_index);
+	std::vector<double> corrected_base_frag;//(reads.at(base_read).fragments.begin(), reads.at(base_read).fragments.begin() + min_index);
 	std::vector<double> temp_deleted_frag;
 
 //	std::cout<<std::endl<<"Min_index: "<<this->min_index<<" Max_index "<<this->max_index<<std::endl;
@@ -182,20 +182,25 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	bool consensus_happening = true;
 
 	/* Initialize 'start' fragment according for each target read as per generated alignment to alignment */
-	for(int i = 0; i < min_index; i++){
+/*	for(int i = 0; i < min_index; i++){
 		for(int j = 0; j < multi_align_info.size(); j++){
 			if(multi_align_info.at(j).diff.at(i) != -1)
 				multi_align_info.at(j).start += multi_align_info.at(j).diff.at(i);
 		}
 	}
-
-	printMultiAlignInfo();
+*/
+//	printMultiAlignInfo(reads);
 	int deletion_corrected = 0;
+	int insertion_error = 0;
+	int no_of_minus_one = 0;
 
-	for(int b_ptr = min_index; b_ptr < this->max_index; b_ptr++){
+	for(int b_ptr = 0; b_ptr < reads.at(base_read).fragments.size(); b_ptr++){
 		std::vector< std::vector<int> > con_o(10); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5] count occurrences
 		for(int j = 0; j < multi_align_info.size(); j++){
-			con_o.at(multi_align_info.at(j).diff.at(b_ptr) + 1).push_back(j);
+			// because 0 means overlap
+			if(multi_align_info.at(j).diff.at(b_ptr) != 0){
+				con_o.at(multi_align_info.at(j).diff.at(b_ptr) + 1).push_back(j);
+			}
 		}
 
 		int max_count_index = -1;
@@ -221,6 +226,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 			consensus.push_back(std::make_pair(-2, max_count));
 			corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));	
 			consensus_happening = false;		
+			no_of_minus_one = 0;
 		}
 
 		// if insertion error
@@ -228,6 +234,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 			consensus.push_back(std::make_pair((max_count_index-1), max_count));		
 			temp_deleted_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
 			consensus_happening = true;			
+			no_of_minus_one++;
 		}
 
 		else {			
@@ -248,7 +255,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 					}
 					
 					/* Adding average to as corrected read */
-					corrected_base_frag.push_back(add/con_o.at(max_count_index).size());
+					corrected_base_frag.push_back(floor((add/con_o.at(max_count_index).size()) * 1000) / 1000);
 									
 				}
 			}
@@ -257,8 +264,14 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 				corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
 			}
 
-			if(max_count_index > 2){
-				deletion_corrected+= max_count_index-2;
+			if(max_count_index > 1){
+				if((max_count_index - no_of_minus_one) > 2){
+					deletion_corrected += (max_count_index - no_of_minus_one - 2);					
+				}
+				else if((max_count_index - no_of_minus_one) < 2){
+					insertion_error += -(max_count_index - no_of_minus_one - 2);
+				}
+				no_of_minus_one = 0;
 			}
 			consensus.push_back(std::make_pair((max_count_index-1), max_count));
 		}
@@ -271,17 +284,25 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	}
 	
 	/* Copy if any remaining fragment-lengths */
-	for(int k = this->max_index; k < reads.at(base_read).fragments.size(); k++){		
+/*	for(int k = this->max_index; k < reads.at(base_read).fragments.size(); k++){		
 		corrected_base_frag.push_back( reads.at(base_read).fragments.at(k) );
 	}
+*/
 
 	/* Update the corrected Read */
 	reads.at(base_read).fragments.swap(corrected_base_frag);
 
 	count_updated_r++; // delete this
-	if(deletion_corrected > 0)
-		std::cout<<base_read<<" "<<deletion_corrected<<std::endl;
-
+	static int number_of_reads_with_more_than_five_alignment = 0;
+	if(multi_align_info.size() >= 5){
+		number_of_reads_with_more_than_five_alignment++;
+	}
+	std::cout<<"-> "<<number_of_reads_with_more_than_five_alignment<<endl;
+/*	if(deletion_corrected > 0 || insertion_error > 0){
+		std::cout<<base_read<<" == "<<deletion_corrected<<"  ";
+		std::cout<<base_read<<" == "<<insertion_error<<std::endl;
+	}
+*/
         /* print corrected reads */
 /*	std::cout<<std::endl;
 	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
@@ -289,24 +310,24 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		cout<<reads.at(base_read).fragments.at(z)<<"\t";
 	}
 	cout<<endl;
-*/
 
+*/
 /*
 	cout<<"-*-*-*-*-*-*"<<endl;
 	// Printing consensus
-	cout<< "start from : "<<min_index<<endl;
+	//cout<< "start from : "<<min_index<<endl;
 	for(int z = 0; z < consensus.size(); z++ ){
 		cout<<consensus.at(z).first<<" ";
 	}
-*/
-/*	cout<<endl;
+	cout<<endl;
+
 	for(int z = 0; z < consensus.size(); z++ ){
 		cout<<consensus.at(z).second<<" ";
 	}
 	cout<<" - "<<consensus.size();
-*/
-//	cout<<endl<<"-*-*-*-*-*-*"<<endl;
 
+	cout<<endl<<"-*-*-*-*-*-*"<<endl;
+*/
 
 
 }
