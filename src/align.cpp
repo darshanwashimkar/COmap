@@ -44,7 +44,7 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
 
-	//printMultiAlignInfo(reads);
+//	printMultiAlignInfo(reads);
 
 	/* Check if we have minimux number of reads to form consensus */
 	if(multi_align_info.size() >=  MIN_CONSENSUS){	
@@ -294,10 +294,10 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 	count_updated_r++; // delete this
 	static int number_of_reads_with_more_than_five_alignment = 0;
-	if(multi_align_info.size() >= 5){
+	if(multi_align_info.size() >= 4){
 		number_of_reads_with_more_than_five_alignment++;
 	}
-	std::cout<<"-> "<<number_of_reads_with_more_than_five_alignment<<endl;
+//	std::cout<<"-> "<<number_of_reads_with_more_than_five_alignment<<endl;
 /*	if(deletion_corrected > 0 || insertion_error > 0){
 		std::cout<<base_read<<" == "<<deletion_corrected<<"  ";
 		std::cout<<base_read<<" == "<<insertion_error<<std::endl;
@@ -310,8 +310,8 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		cout<<reads.at(base_read).fragments.at(z)<<"\t";
 	}
 	cout<<endl;
-
 */
+
 /*
 	cout<<"-*-*-*-*-*-*"<<endl;
 	// Printing consensus
@@ -328,7 +328,6 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 	cout<<endl<<"-*-*-*-*-*-*"<<endl;
 */
-
 
 }
 

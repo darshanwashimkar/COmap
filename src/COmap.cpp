@@ -77,7 +77,7 @@ int main (int argc, char **argv) {
 
 	/* Code to Printing related reads */
 //	RRI.printNumberCommanKmerBetweenReads();
-	RRI.printRelatedReads();
+//	RRI.printRelatedReads();
 	
 	/* Store corrected reads */
 	/* Create Copy for reads */
@@ -86,7 +86,7 @@ int main (int argc, char **argv) {
 	RRI.correctReads(reads, corrected_reads);
 
 	/* Print reads */
-	//printReads(reads);
+	printReads(reads);
 	
 	infile.close();
 	return (0);

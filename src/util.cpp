@@ -132,7 +132,7 @@ int readParameters(int argc, char **argv){
 		break;
 
 	      case '?':
-		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads] [-c Min Common k between reads]"<<std::endl;
+		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads] [-r Min Common k between reads]"<<std::endl;
 		return(0);
 	      default:
 		return(-1);
