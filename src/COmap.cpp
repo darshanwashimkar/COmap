@@ -86,7 +86,7 @@ int main (int argc, char **argv) {
 	RRI.correctReads(reads, corrected_reads);
 
 	/* Print reads */
-	printReads(reads);
+	//printReads(reads);
 	
 	infile.close();
 	return (0);

@@ -44,7 +44,7 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
 
-//	printMultiAlignInfo(reads);
+	//printMultiAlignInfo(reads);
 
 	/* Check if we have minimux number of reads to form consensus */
 	if(multi_align_info.size() >=  MIN_CONSENSUS){	
@@ -86,7 +86,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 
 	int b_ptr = 0;
 
-	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){		
+	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
 		if(for_alignment.ref_restr_al_sites.size() > 0){
 			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];		     	
 			alignment_data.start = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
@@ -194,7 +194,9 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	int insertion_error = 0;
 	int no_of_minus_one = 0;
 
-	for(int b_ptr = 0; b_ptr < reads.at(base_read).fragments.size(); b_ptr++){
+
+	/* not processing first and last fragment */
+	for(int b_ptr = 0; b_ptr < reads.at(base_read).fragments.size() - 1; b_ptr++){
 		std::vector< std::vector<int> > con_o(10); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5] count occurrences
 		for(int j = 0; j < multi_align_info.size(); j++){
 			// because 0 means overlap
@@ -240,7 +242,9 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		else {			
 			temp_deleted_frag.clear();
 
-			if(consensus_happening){
+			/* find average for only [(max_count_index-1) > 1] (one fragment aligning to more than one fragment) */
+			if(consensus_happening && (max_count_index-1) > 1){
+
 				/* Finding average of fragments forming consusus */
 				for(int m = 0; m < (max_count_index-1); m++){
 
@@ -256,7 +260,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 					
 					/* Adding average to as corrected read */
 					corrected_base_frag.push_back(floor((add/con_o.at(max_count_index).size()) * 1000) / 1000);
-									
+					
 				}
 			}
 			else{
@@ -283,6 +287,14 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		}
 	}
 	
+	/* Copy if anything is remaining in temp_deleted_frag */
+	if(temp_deleted_frag.size() > 0){
+		std::copy(temp_deleted_frag.begin(), temp_deleted_frag.end(), std::back_inserter(corrected_base_frag));
+		/* Copy last fragment */
+		corrected_base_frag.push_back(reads.at(base_read).fragments.at(reads.at(base_read).fragments.size() - 1));
+	}
+
+
 	/* Copy if any remaining fragment-lengths */
 /*	for(int k = this->max_index; k < reads.at(base_read).fragments.size(); k++){		
 		corrected_base_frag.push_back( reads.at(base_read).fragments.at(k) );
@@ -298,11 +310,11 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		number_of_reads_with_more_than_five_alignment++;
 	}
 //	std::cout<<"-> "<<number_of_reads_with_more_than_five_alignment<<endl;
-/*	if(deletion_corrected > 0 || insertion_error > 0){
+	if(deletion_corrected > 0 || insertion_error > 0){
 		std::cout<<base_read<<" == "<<deletion_corrected<<"  ";
 		std::cout<<base_read<<" == "<<insertion_error<<std::endl;
 	}
-*/
+
         /* print corrected reads */
 /*	std::cout<<std::endl;
 	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
