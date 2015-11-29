@@ -23,7 +23,7 @@ void quantize(unsigned int *val, int *bin_size){
 }
 
 */
-
+/*
 unsigned int nextRange(unsigned int cur_range, unsigned int bin_size,double s_varience){
     if(cur_range < 2000)
         return(cur_range + bin_size);
@@ -58,7 +58,47 @@ void quantize(unsigned int *val, unsigned int bin_size, double s_varience){
 		}
 	}
 }
+*/
 
+/* standard deviation with Bionano data */
+double signmaS(double len){
+    double singma = (0.2*0.2) + len * 0.1 * (-0.1) + len*len*0.04*0.04;
+    return(sqrt(singma));
+}
+
+unsigned int nextRange(unsigned int pre_val, int folds){
+    double S = signmaS(float(pre_val/1000.0));
+    double d = (2.0 * folds * S) * 1000;
+    return(int(pre_val + d));
+}
+
+
+void quantize(unsigned int *val, int folds, unsigned int start){
+    static vector<double> quantizeList;
+    
+    if(*val <= start)
+        return;
+        
+    if(quantizeList.size() == 0){
+        quantizeList.push_back(start);
+        quantizeList.push_back(nextRange(start, folds));
+    }
+    
+    for(int i = 0; i < quantizeList.size(); i++){
+    	if(*val < quantizeList[i]){        
+            *val = quantizeList[i-1];
+            return;
+    	}
+    }
+        
+    while(1){
+        quantizeList.push_back(nextRange(quantizeList[quantizeList.size() - 1], folds));
+        if(*val < quantizeList[quantizeList.size() - 1]){
+            *val = quantizeList[quantizeList.size() - 2];
+            return;
+        }
+    }
+}
 
 /* split takes read string and convert it into unsigned int vector after quantizing values */
 void split(const std::string &s, char delim, std::vector<unsigned int> &elems, Read &read) {
@@ -81,7 +121,7 @@ void split(const std::string &s, char delim, std::vector<unsigned int> &elems, R
 	
 	double frag = atof(item.c_str());
 	unsigned int number = ((frag)*1000);
-	quantize(&number , BIN_S, S_VARIENCE);
+	quantize(&number , 3, 500);
 	if( number > 0){
 		elems.push_back(number);
 		read.fragments.push_back(frag);
