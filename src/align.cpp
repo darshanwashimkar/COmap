@@ -44,7 +44,7 @@ void Aligner::alignSet(std::vector<Read> & reads, std::vector<Read> & corrected_
 		alignPair(br,tr, this->tar_reads.at(i));
 	}
 
-	printMultiAlignInfo(reads);
+//	printMultiAlignInfo(reads);
 
 	/* Check if we have minimux number of reads to form consensus */
 	if(multi_align_info.size() >=  MIN_CONSENSUS){	
@@ -123,7 +123,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 			max_index = b_ptr;
 */
 		//cout<<endl<<endl;
-		for_alignment.output_alignment(cout);	
+//		for_alignment.output_alignment(cout);	
 	}
 	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
 
@@ -310,11 +310,11 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		number_of_reads_with_more_than_five_alignment++;
 	}
 //	std::cout<<"-> "<<number_of_reads_with_more_than_five_alignment<<endl;
-/*	if(deletion_corrected > 0 || insertion_error > 0){
+	if(deletion_corrected > 0 || insertion_error > 0){
 		std::cout<<base_read<<" == "<<deletion_corrected<<"  ";
 		std::cout<<base_read<<" == "<<insertion_error<<std::endl;
 	}
-*/
+
         /* print corrected reads */
 /*	std::cout<<std::endl;
 	for(int z = 0; z < reads.at(base_read).fragments.size(); z++){
@@ -324,7 +324,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	cout<<endl;
 */
 
-
+/*
 	cout<<"-*-*-*-*-*-*"<<endl;
 	// Printing consensus
 	//cout<< "start from : "<<min_index<<endl;
@@ -339,7 +339,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 	cout<<" - "<<consensus.size();
 
 	cout<<endl<<"-*-*-*-*-*-*"<<endl;
-
+*/
 
 }
 
