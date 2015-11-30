@@ -121,7 +121,7 @@ void split(const std::string &s, char delim, std::vector<unsigned int> &elems, R
 	
 	double frag = atof(item.c_str());
 	unsigned int number = ((frag)*1000);
-	quantize(&number , 3, 500);
+	quantize(&number , 4, 500);
 	if( number > 0){
 		elems.push_back(number);
 		read.fragments.push_back(frag);
