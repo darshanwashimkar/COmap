@@ -19,6 +19,10 @@
 #include "read.hpp"
 #endif
 
+extern bool p_error_count;
+extern bool debug;
+extern bool p_corrected_r;
+
 struct AdjAlignmentDifference{
 	unsigned int a_read;   // Aligned target read
 	int start;             // The first fragment from target read which is aligned to base reads

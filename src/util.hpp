@@ -16,6 +16,10 @@ void printReadStatastics(std::vector<Read> &);
 void printReads(std::vector<Read> &);
 
 
+extern bool p_error_count;
+extern bool debug;
+extern bool p_corrected_r;
+
 extern int BIN_S;
 extern int K;
 extern int NO_OF_THREADS;

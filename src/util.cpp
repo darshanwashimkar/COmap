@@ -1,6 +1,10 @@
 #define _UTIL_CPP
 #include "util.hpp"
 
+bool p_error_count = true;
+bool debug = false;
+bool p_corrected_r = false;
+
 int BIN_S = 300;
 int K = 3;
 int NO_OF_THREADS = 1;

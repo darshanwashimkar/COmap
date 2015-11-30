@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include "RRI.hpp"
 
+
 using namespace std;
 
 
@@ -77,17 +78,21 @@ int main (int argc, char **argv) {
 
 	/* Code to Printing related reads */
 //	RRI.printNumberCommanKmerBetweenReads();
-	RRI.printRelatedReads();
-	
+	if(debug){
+		RRI.printRelatedReads();
+	}
+
 	/* Store corrected reads */
 	/* Create Copy for reads */
 	std::vector<Read> corrected_reads(reads);
 
 	RRI.correctReads(reads, corrected_reads);
 
-	/* Print reads */
-	printReads(reads);
-	
+	if(p_corrected_r){
+		/* Print reads */
+		printReads(reads);
+	}
+
 	infile.close();
 	return (0);
 }
