@@ -62,7 +62,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	alignment_data.diff.resize(br.map_read.size(), 0);
 
 	om_read rev_tr = tr.reverse();
-	scoring_params sp(0.2,1.2,.9, 7,17.43,0.58, 0.01, 0.75, 1, 3);
+	scoring_params sp(0.2,1.2,.9, 4,17.43,0.25, 0.01, 0.85, 0.178, 3.5);
 	rm_alignment for_alignment(br, tr, sp);
 	rm_alignment rev_alignment(br, rev_tr, sp);
 
@@ -79,12 +79,14 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	double for_t_score = for_alignment.Tmax;
 	double rev_t_score = rev_alignment.Tmax;
 
-	double score_thresh = 25;
+	double score_thresh = 5;
 	double t_score_thresh = 0;
 	double t_mult = 0;
 	
-//	std::cout<<"fs: \t"<<for_score<<"  \trs: \t" <<rev_score<<std::endl;
-//	std::cout<<"fs_t: \t"<<for_t_score<<"  \t\trs_t: \t"<<rev_t_score<<std::endl;
+	if(debug){
+		std::cout<<"fs: \t"<<for_score<<"  \trs: \t" <<rev_score<<std::endl;
+		std::cout<<"fs_t: \t"<<for_t_score<<"  \t\trs_t: \t"<<rev_t_score<<std::endl;
+	}
 
 	int b_ptr = 0;
 
@@ -103,13 +105,26 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 			int ref_diff = for_alignment.ref_restr_al_sites[k-1] - for_alignment.ref_restr_al_sites[k];
 			int tar_diff = for_alignment.tar_restr_al_sites[k-1] - for_alignment.tar_restr_al_sites[k];
 //			std::cout<<"  - "<< ref_diff <<"  "<<tar_diff<<std::endl;
-			while(ref_diff>1){
-				alignment_data.diff.at(b_ptr) = -1;
-				b_ptr++;
-				ref_diff--;
+			/* if alignment is like -1 2 then conver to 1 1 OR like -1 -1 3 then 1 1 1*/
+			if(ref_diff == tar_diff && ref_diff > 1){
+				while(ref_diff>1){
+					// 8 because 8 is the highest here
+					alignment_data.diff.at(b_ptr) = 8;
+					b_ptr++;
+					ref_diff--;
+					tar_diff--;
+				}
+				alignment_data.diff.at(b_ptr) = 8;
 			}
+			else{
+				while(ref_diff>1){									
+					alignment_data.diff.at(b_ptr) = -1;				
+					b_ptr++;
+					ref_diff--;
+				}
+				alignment_data.diff.at(b_ptr) = tar_diff;
+			}			
 
-			alignment_data.diff.at(b_ptr) = tar_diff;
 			b_ptr++;
 
 //-----------------
@@ -200,10 +215,10 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 
 	/* not processing first and last fragment */
-	for(int b_ptr = 0; b_ptr < reads.at(base_read).fragments.size() - 1; b_ptr++){
-		std::vector< std::vector<int> > con_o(10); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5] count occurrences
+	for(int b_ptr = 0; b_ptr < reads.at(base_read).fragments.size(); b_ptr++){
+		std::vector< std::vector<int> > con_o(10); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8] count occurrences
 		for(int j = 0; j < multi_align_info.size(); j++){
-			// because 0 means overlap
+			// because 0 means no overlap
 			if(multi_align_info.at(j).diff.at(b_ptr) != 0){
 				con_o.at(multi_align_info.at(j).diff.at(b_ptr) + 1).push_back(j);
 			}
@@ -254,17 +269,23 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 					double add = 0.0;
 					AdjAlignmentDifference *t_info; // pointer to the alignment_info to make code easy to understand
-
+				
 					for(int n = 0; n < con_o.at(max_count_index).size(); n++){
 						t_info = &multi_align_info.at(con_o.at(max_count_index).at(n));
 						add += reads.at(t_info->a_read).fragments.at(t_info->start + m); 
 						// m is added because multiple fragments can align to single fragment from base read. 
-						// So such case we are no updating the start hence we need to add m.					
+						// So such case we are not updating the start hence we need to add m.	
+
 					}
 					
-					/* Adding average to as corrected read */
+					/* Adding average to corrected read */
 					corrected_base_frag.push_back(floor((add/con_o.at(max_count_index).size()) * 1000) / 1000);
 					
+					/* special case for (-1 2)(-1 -1 3)(-1 -1 -1 4) kind of alignment*/
+					//std::cout<<"\n max count : "<<(max_count_index-1)<<" ";
+					if((max_count_index-1) == 8){
+						break;
+					}					
 				}
 			}
 			else{
@@ -273,11 +294,13 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 			}
 
 			if(max_count_index > 1){
-				if((max_count_index - no_of_minus_one) > 2){
-					deletion_corrected += (max_count_index - no_of_minus_one - 2);					
+				if((max_count_index - no_of_minus_one) > 2 && max_count_index != 9){					
+					deletion_corrected += (max_count_index - no_of_minus_one - 2);
+					cout<<" -"<<b_ptr;
 				}
 				else if((max_count_index - no_of_minus_one) < 2){
 					insertion_error += -(max_count_index - no_of_minus_one - 2);
+					cout<<" +"<<b_ptr;
 				}
 				no_of_minus_one = 0;
 			}
@@ -286,8 +309,12 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 		/* Update start of every alignment info */
 		for(int j = 0; j < multi_align_info.size(); j++){
-			if(multi_align_info.at(j).diff.at(b_ptr) != -1)
+			if(multi_align_info.at(j).diff.at(b_ptr) == 8){
+				multi_align_info.at(j).start += 1;
+			}
+			else if(multi_align_info.at(j).diff.at(b_ptr) != -1){
 				multi_align_info.at(j).start += multi_align_info.at(j).diff.at(b_ptr);
+			}			
 		}
 	}
 	
@@ -296,7 +323,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		std::copy(temp_deleted_frag.begin(), temp_deleted_frag.end(), std::back_inserter(corrected_base_frag));		
 	}
 	/* Copy last fragment */
-	corrected_base_frag.push_back(reads.at(base_read).fragments.at(reads.at(base_read).fragments.size() - 1));
+	//corrected_base_frag.push_back(reads.at(base_read).fragments.at(reads.at(base_read).fragments.size() - 1));
 
 
 	/* Copy if any remaining fragment-lengths */
