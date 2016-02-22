@@ -2,8 +2,8 @@
 #include "util.hpp"
 
 bool p_error_count = true;
-bool debug = false;
-bool p_corrected_r = false;
+bool debug = true;
+bool p_corrected_r = true;
 
 int BIN_S = 300;
 int K = 3;
@@ -11,7 +11,7 @@ int NO_OF_THREADS = 1;
 std::string OM_FILE = "/s/oak/b/nobackup/muggli/goat/whole_genome_mapping/goat_whole_genome.maps";
 int NUMBER_OF_BLOCKS = 20;
 int MIN_COMMON_K_IN_READS = 3;
-int MIN_CONSENSUS = 2;
+int MIN_CONSENSUS = 4;
 double S_VARIENCE = 0.33;
 
 using namespace std;
