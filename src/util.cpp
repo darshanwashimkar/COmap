@@ -144,7 +144,7 @@ int readParameters(int argc, char **argv){
 	char *pEnd;
 
 	/* Parsing arguments */
-	while ((c = getopt (argc, argv, ":xyz:k:b:f:t:m:d:?")) != -1){
+	while ((c = getopt (argc, argv, ":k:b:f:t:m:d:xyz:?")) != -1){
 	    switch (c)
 	    {
 	      case 'k':
@@ -173,11 +173,7 @@ int readParameters(int argc, char **argv){
 
 	      case 'm':
 			MIN_COMMON_K_IN_READS = strtol(optarg, &pEnd, 10);
-			break;
-
-		  case 'd':
-			MIN_CONSENSUS = strtol(optarg, &pEnd, 10);
-			break;
+			break;		  
 
 		  case 'x':
 			p_error_count = true;
@@ -190,6 +186,10 @@ int readParameters(int argc, char **argv){
 		  case 'z':
 			p_corrected_r = true;
 			break;			
+
+		  case 'd':
+			MIN_CONSENSUS = strtol(optarg, &pEnd, 10);
+			break;
 
 	      case '?':
 			std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads] [-m Min Common k between reads] [-d Number of similar alignment to creat CONSENSUS] [-x enable printing error count] [-y enable printing debug] [-z enable printing corrected reads]"<<std::endl;
