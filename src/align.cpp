@@ -215,16 +215,30 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 
 
 	/* not processing first and last fragment */
-	for(int b_ptr = 0; b_ptr < reads.at(base_read).fragments.size(); b_ptr++){
-		std::vector< std::vector<int> > con_o(10); // Can get segfault here // [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8] count occurrences
+	for(int b_ptr = 0; b_ptr < reads.at(base_read).fragments.size(); b_ptr++){		
+		std::unordered_map<int, std::vector<int>> con_o; // [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8] count occurrences
+		std::unordered_map<int, std::vector<int>>::iterator highest = con_o.end();
+
 		for(int j = 0; j < multi_align_info.size(); j++){
 			// because 0 means no overlap
-			if(multi_align_info.at(j).diff.at(b_ptr) != 0){
-				con_o.at(multi_align_info.at(j).diff.at(b_ptr) + 1).push_back(j);
+			if(multi_align_info.at(j).diff.at(b_ptr) != 0){				
+				std::vector<int> def_vect(1,j);
+  				std::pair<int,std::vector<int>> default_val((multi_align_info.at(j).diff.at(b_ptr) + 1) , def_vect);
+				std::pair<std::unordered_map<int, std::vector<int>>::iterator, bool> got = con_o.insert(default_val);
+				
+				if(highest == con_o.end()){
+					highest = got.first;
+				}
+				else if(got.second == false){
+					got.first->second.push_back(j);					
+		            if(got.first->second.size() > highest->second.size()){                
+		                highest = got.first;
+		            }
+				}
 			}
 		}
 
-		int max_count_index = -1;
+/*		int max_count_index = -1;
 		int max_count = 0;
 		for(int k = 0; k < con_o.size(); k++){
 			if(con_o.at(k).size() > max_count){
@@ -233,26 +247,26 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 			}
 		}
 		
-
+*/
 		/* Check if alignment satisfies the requirement of minimum consensus between reads */
 		/* Don't correct any error in such type of alignemnt */
 		/* '-2' value in 'consensus' means there are no consensus as per user entered min_consensus value */		
-		if(max_count < MIN_CONSENSUS){
+		if(highest->second.size() < MIN_CONSENSUS){
 
 			if(temp_deleted_frag.size() != 0){
 				std::copy(temp_deleted_frag.begin(), temp_deleted_frag.end(), std::back_inserter(corrected_base_frag));
 				temp_deleted_frag.clear();
 			}
 
-			consensus.push_back(std::make_pair(-2, max_count));
+			consensus.push_back(std::make_pair(-2, highest->second.size()));
 			corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));	
 			consensus_happening = false;		
 			no_of_minus_one = 0;
 		}
 
 		// if insertion error
-		else if((max_count_index - 1) == -1){ 
-			consensus.push_back(std::make_pair((max_count_index-1), max_count));		
+		else if((highest->first - 1) == -1){ 
+			consensus.push_back(std::make_pair((highest->first-1), highest->second.size()));		
 			temp_deleted_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
 			consensus_happening = true;			
 			no_of_minus_one++;
@@ -261,17 +275,17 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		else {			
 			temp_deleted_frag.clear();
 
-			/* find average for only [(max_count_index-1) > 1] (one fragment aligning to more than one fragment) */
-			if(consensus_happening && (max_count_index-1) > 1){
+			/* find average for only [(highest->first-1) > 1] (one fragment aligning to more than one fragment) */
+			if(consensus_happening && (highest->first-1) > 1){
 
 				/* Finding average of fragments forming consusus */
-				for(int m = 0; m < (max_count_index-1); m++){
+				for(int m = 0; m < (highest->first-1); m++){
 
 					double add = 0.0;
 					AdjAlignmentDifference *t_info; // pointer to the alignment_info to make code easy to understand
 				
-					for(int n = 0; n < con_o.at(max_count_index).size(); n++){
-						t_info = &multi_align_info.at(con_o.at(max_count_index).at(n));
+					for(int n = 0; n < highest->second.size(); n++){
+						t_info = &multi_align_info.at(highest->second.at(n));
 						add += reads.at(t_info->a_read).fragments.at(t_info->start + m); 
 						// m is added because multiple fragments can align to single fragment from base read. 
 						// So such case we are not updating the start hence we need to add m.	
@@ -279,11 +293,11 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 					}
 					
 					/* Adding average to corrected read */
-					corrected_base_frag.push_back(floor((add/con_o.at(max_count_index).size()) * 1000) / 1000);
+					corrected_base_frag.push_back(floor((add/highest->second.size()) * 1000) / 1000);
 					
 					/* special case for (-1 2)(-1 -1 3)(-1 -1 -1 4) kind of alignment*/
-					//std::cout<<"\n max count : "<<(max_count_index-1)<<" ";
-					if((max_count_index-1) == 8){
+					//std::cout<<"\n max count : "<<(highest->first-1)<<" ";
+					if((highest->first-1) == 8){
 						break;
 					}					
 				}
@@ -293,22 +307,22 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 				corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
 			}
 
-			if(max_count_index > 1){
-				if((max_count_index - no_of_minus_one) > 2 && max_count_index != 9){					
-					deletion_corrected += (max_count_index - no_of_minus_one - 2);
+			if(highest->first > 1){
+				if((highest->first - no_of_minus_one) > 2 && highest->first != 9){					
+					deletion_corrected += (highest->first - no_of_minus_one - 2);
 					if(p_error_count){
 						cout<<"-"<<b_ptr<<" ";
 					}
 				}
-				else if((max_count_index - no_of_minus_one) < 2){
-					insertion_error += -(max_count_index - no_of_minus_one - 2);
+				else if((highest->first - no_of_minus_one) < 2){
+					insertion_error += -(highest->first - no_of_minus_one - 2);
 					if(p_error_count){
 						cout<<"+"<<b_ptr<<" ";
 					}
 				}
 				no_of_minus_one = 0;
 			}
-			consensus.push_back(std::make_pair((max_count_index-1), max_count));
+			consensus.push_back(std::make_pair((highest->first-1), highest->second.size()));
 		}
 
 		/* Update start of every alignment info */
