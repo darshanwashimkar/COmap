@@ -26,7 +26,7 @@ int main (int argc, char **argv) {
 	}
 
 	/* Print parameters of run */
-//	printParameters();
+	printParameters();
 
 	/* Data structure to store reads */
 	std::vector<Read> reads;

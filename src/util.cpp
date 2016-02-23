@@ -1,9 +1,9 @@
 #define _UTIL_CPP
 #include "util.hpp"
 
-bool p_error_count = true;
-bool debug = true;
-bool p_corrected_r = true;
+bool p_error_count = false;
+bool debug = false;
+bool p_corrected_r = false;
 
 int BIN_S = 300;
 int K = 3;
@@ -144,43 +144,59 @@ int readParameters(int argc, char **argv){
 	char *pEnd;
 
 	/* Parsing arguments */
-	while ((c = getopt (argc, argv, "k:b:f:t:r:?")) != -1){
+	while ((c = getopt (argc, argv, ":xyz:k:b:f:t:m:d:?")) != -1){
 	    switch (c)
-	      {
+	    {
 	      case 'k':
-		K = strtol(optarg, &pEnd, 10);
-		if (K<=0){
-			std::cout<<"Please enter integer value greater than 0 for Kmer"<<std::endl;
-			return(-1);
-		}			
-		break;
+			K = strtol(optarg, &pEnd, 10);
+			if (K<=0){
+				std::cout<<"Please enter integer value greater than 0 for Kmer"<<std::endl;
+				return(-1);
+			}			
+			break;
 
 	      case 'b':
-		BIN_S = strtol(optarg, &pEnd, 10);
-		if (BIN_S<=0){
-			std::cout<<"Please enter integer value greater than 0 for Bin Size"<<std::endl;
-			return(-1);
-		}
-		break;
+			BIN_S = strtol(optarg, &pEnd, 10);
+			if (BIN_S<=0){
+				std::cout<<"Please enter integer value greater than 0 for Bin Size"<<std::endl;
+				return(-1);
+			}
+			break;
 	      
 	      case 'f':
-		OM_FILE = optarg;
-		break;
+			OM_FILE = optarg;
+			break;
 
 	      case 't':
-		NO_OF_THREADS = strtol(optarg, &pEnd, 10);
-		break;
+			NO_OF_THREADS = strtol(optarg, &pEnd, 10);
+			break;
 
-	      case 'r':
-		MIN_COMMON_K_IN_READS = strtol(optarg, &pEnd, 10);
-		break;
+	      case 'm':
+			MIN_COMMON_K_IN_READS = strtol(optarg, &pEnd, 10);
+			break;
+
+		  case 'd':
+			MIN_CONSENSUS = strtol(optarg, &pEnd, 10);
+			break;
+
+		  case 'x':
+			p_error_count = true;
+			break;			
+
+		  case 'y':
+			debug = true;
+			break;			
+
+		  case 'z':
+			p_corrected_r = true;
+			break;			
 
 	      case '?':
-		std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads] [-r Min Common k between reads]"<<std::endl;
-		return(0);
+			std::cout<<"Usage: %%COmap [-k Kmer] [-b BinSize] [-f File Name] [-t No of Threads] [-m Min Common k between reads] [-d Number of similar alignment to creat CONSENSUS] [-x enable printing error count] [-y enable printing debug] [-z enable printing corrected reads]"<<std::endl;
+			return(0);
 	      default:
-		return(-1);
-	      }	
+			return(-1);
+	    }	
 	}
 	
 	return(1);
@@ -198,6 +214,9 @@ void printParameters(){
 	std::cout<<"NUMBER_OF_BLOCKS : "<<NUMBER_OF_BLOCKS<<std::endl;
 	std::cout<<"MIN_COMMON_K_IN_READS : "<<MIN_COMMON_K_IN_READS<<std::endl;
 	std::cout<<"MIN_CONSENSUS : "<<MIN_CONSENSUS<<std::endl;
+	std::cout<<"p_error_count : "<<p_error_count<<std::endl;
+	std::cout<<"debug : "<<debug<<std::endl;
+	std::cout<<"p_corrected_r : "<<p_corrected_r<<std::endl;
 	std::cout<<"==================================================="<<std::endl;	
 }
 
