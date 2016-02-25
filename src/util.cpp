@@ -144,7 +144,7 @@ int readParameters(int argc, char **argv){
 	char *pEnd;
 
 	/* Parsing arguments */
-	while ((c = getopt (argc, argv, ":k:b:f:t:m:d:xyz:?")) != -1){
+	while ((c = getopt (argc, argv, ":k:b:f:t:m:xyzd:?:")) != -1){
 	    switch (c)
 	    {
 	      case 'k':

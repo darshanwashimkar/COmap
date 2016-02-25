@@ -250,15 +250,17 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 */
 		/* Check if alignment satisfies the requirement of minimum consensus between reads */
 		/* Don't correct any error in such type of alignemnt */
-		/* '-2' value in 'consensus' means there are no consensus as per user entered min_consensus value */		
-		if(highest->second.size() < MIN_CONSENSUS){
+		/* '-2' value in 'consensus' means there are no consensus as per user entered min_consensus value */	
+
+		
+		if(highest == con_o.end() || highest->second.size() < MIN_CONSENSUS){
 
 			if(temp_deleted_frag.size() != 0){
 				std::copy(temp_deleted_frag.begin(), temp_deleted_frag.end(), std::back_inserter(corrected_base_frag));
 				temp_deleted_frag.clear();
 			}
 
-			consensus.push_back(std::make_pair(-2, highest->second.size()));
+			consensus.push_back(std::make_pair(-2, 0));
 			corrected_base_frag.push_back(reads.at(base_read).fragments.at(b_ptr));	
 			consensus_happening = false;		
 			no_of_minus_one = 0;
