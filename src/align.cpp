@@ -313,13 +313,13 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 				if((highest->first - no_of_minus_one) > 2 && highest->first != 9){					
 					deletion_corrected += (highest->first - no_of_minus_one - 2);
 					if(p_error_count){
-						cout<<"-"<<b_ptr<<" ";
+						//cout<<"-"<<b_ptr<<" ";
 					}
 				}
 				else if((highest->first - no_of_minus_one) < 2){
 					insertion_error += -(highest->first - no_of_minus_one - 2);
 					if(p_error_count){
-						cout<<"+"<<b_ptr<<" ";
+						//cout<<"+"<<b_ptr<<" ";
 					}
 				}
 				no_of_minus_one = 0;
@@ -363,7 +363,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 //	std::cout<<"-> "<<number_of_reads_with_more_than_five_alignment<<endl;
 	if(p_error_count){
 		if(deletion_corrected > 0 || insertion_error > 0){
-			std::cout<<"\n"<<base_read<<" == "<<deletion_corrected<<"  ";
+			std::cout<<base_read<<" == "<<deletion_corrected<<"  ";
 			std::cout<<base_read<<" == "<<insertion_error<<std::endl;
 		}
 	}
