@@ -79,7 +79,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	double for_t_score = for_alignment.Tmax;
 	double rev_t_score = rev_alignment.Tmax;
 
-	double score_thresh = 5;
+	double score_thresh = 8;
 	double t_score_thresh = 0;
 	double t_mult = 0;
 	
@@ -277,7 +277,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		else {			
 			temp_deleted_frag.clear();			
 			/* find average for only [(highest->first-1) > 1] (one fragment aligning to more than one fragment) */
-			if(consensus_happening && (highest->first-1) >= 1){
+			if((consensus_happening && (highest->first-1) >1) || (consensus_happening && (no_of_minus_one >= 1))){
 					
 				/* Finding average of fragments forming consusus */
 				for(int m = 0; m < (highest->first-1); m++){
