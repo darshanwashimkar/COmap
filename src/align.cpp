@@ -267,7 +267,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		}
 
 		// if insertion error
-		else if((highest->first - 1) == -1){ 
+		else if((highest->first - 1) == -1){ 			
 			consensus.push_back(std::make_pair((highest->first-1), highest->second.size()));		
 			temp_deleted_frag.push_back(reads.at(base_read).fragments.at(b_ptr));
 			consensus_happening = true;			
@@ -275,11 +275,10 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		}
 
 		else {			
-			temp_deleted_frag.clear();
-
+			temp_deleted_frag.clear();			
 			/* find average for only [(highest->first-1) > 1] (one fragment aligning to more than one fragment) */
-			if(consensus_happening && (highest->first-1) > 1){
-
+			if(consensus_happening && (highest->first-1) >= 1){
+					
 				/* Finding average of fragments forming consusus */
 				for(int m = 0; m < (highest->first-1); m++){
 
@@ -313,13 +312,17 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 				if((highest->first - no_of_minus_one) > 2 && highest->first != 9){					
 					deletion_corrected += (highest->first - no_of_minus_one - 2);
 					if(p_error_count){
-						//cout<<"-"<<b_ptr<<" ";
+						for(int a = 0; a < (highest->first - no_of_minus_one - 2); a++){
+							cout<<"-"<<(b_ptr + a)<<" ";
+						}
 					}
 				}
 				else if((highest->first - no_of_minus_one) < 2){
 					insertion_error += -(highest->first - no_of_minus_one - 2);
 					if(p_error_count){
-						//cout<<"+"<<b_ptr<<" ";
+						for(int a = -(highest->first - no_of_minus_one - 2); a > 0; a--){
+							cout<<"+"<<(b_ptr - a)<<" ";
+						}
 					}
 				}
 				no_of_minus_one = 0;
@@ -363,7 +366,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 //	std::cout<<"-> "<<number_of_reads_with_more_than_five_alignment<<endl;
 	if(p_error_count){
 		if(deletion_corrected > 0 || insertion_error > 0){
-			std::cout<<base_read<<" == "<<deletion_corrected<<"  ";
+			std::cout<<std::endl<<base_read<<" == "<<deletion_corrected<<"  ";
 			std::cout<<base_read<<" == "<<insertion_error<<std::endl;
 		}
 	}
