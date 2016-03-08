@@ -92,7 +92,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 
 	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
 		if(for_alignment.ref_restr_al_sites.size() > 0){
-			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];		     	
+			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-2];		     	
 			alignment_data.start = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
 
 /*			if(b_ptr > this->min_index)
@@ -100,8 +100,8 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 */
 //			std::cout<<"\n=="<<for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1]<<"\n"<<std::endl;
 		}
-
-		for(int k=for_alignment.ref_restr_al_sites.size()-1; k>0; k--){
+		
+		for(int k=for_alignment.ref_restr_al_sites.size()-2; k>1; k--){
 			int ref_diff = for_alignment.ref_restr_al_sites[k-1] - for_alignment.ref_restr_al_sites[k];
 			int tar_diff = for_alignment.tar_restr_al_sites[k-1] - for_alignment.tar_restr_al_sites[k];
 //			std::cout<<"  - "<< ref_diff <<"  "<<tar_diff<<std::endl;
@@ -277,7 +277,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		else {			
 			temp_deleted_frag.clear();			
 			/* find average for only [(highest->first-1) > 1] (one fragment aligning to more than one fragment) */
-			if((consensus_happening && (highest->first-1) >1) || (consensus_happening && (no_of_minus_one >= 1))){
+			if(((consensus_happening && (highest->first-1) >1)) || (consensus_happening && (no_of_minus_one >= 1))){
 					
 				/* Finding average of fragments forming consusus */
 				for(int m = 0; m < (highest->first-1); m++){
