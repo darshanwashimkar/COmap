@@ -91,6 +91,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	int b_ptr = 0;
 
 	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
+		alignment_data.reversed = false;		
 		if(for_alignment.ref_restr_al_sites.size() > 0){
 			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];		     	
 			alignment_data.start = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
@@ -145,9 +146,40 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 		}
 	}
 	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
+		alignment_data.reversed = true;
+		if(rev_alignment.ref_restr_al_sites.size() > 0){			
+			b_ptr = rev_alignment.ref_restr_al_sites[rev_alignment.ref_restr_al_sites.size()-1];
+			alignment_data.start = rev_alignment.tar_restr_al_sites[1];
+		}
 
-		return; /* Need to update this */
+		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>0; k--){
+			int ref_diff = rev_alignment.ref_restr_al_sites[k-1] - rev_alignment.ref_restr_al_sites[k];
+			int tar_diff = rev_alignment.tar_restr_al_sites[k-1] - rev_alignment.tar_restr_al_sites[k];
+//			std::cout<<"  - "<< ref_diff <<"  "<<tar_diff<<std::endl;
+			/* if alignment is like -1 2 then conver to 1 1 OR like -1 -1 3 then 1 1 1*/
+			if(ref_diff == tar_diff && ref_diff > 1){
+				while(ref_diff>1){
+					// 8 because 8 is the highest here
+					alignment_data.diff.at(b_ptr) = 8;
+					b_ptr++;
+					ref_diff--;
+					tar_diff--;
+				}
+				alignment_data.diff.at(b_ptr) = 8;
+			}
+			else{
+				while(ref_diff>1){									
+					alignment_data.diff.at(b_ptr) = -1;				
+					b_ptr++;
+					ref_diff--;
+				}
+				alignment_data.diff.at(b_ptr) = tar_diff;
+			}			
+
+			b_ptr++;
+		}		
 //-----------------
+/*	
 		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>=0; k--){
 			if(k!=rev_alignment.ref_restr_al_sites.size()-1)
 			std::cout<<" ";
@@ -155,8 +187,10 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 			std::cout<<" ";
 			std::cout<<rev_alignment.tar_restr_al_sites[k];
 		}
-		cout<<endl<<endl;
-		//for_alignment.output_alignment(cout);
+*/		
+		if(debug){
+			rev_alignment.output_alignment(cout);
+		}
 	}
 	else{
 		return;
@@ -286,11 +320,15 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 					AdjAlignmentDifference *t_info; // pointer to the alignment_info to make code easy to understand
 				
 					for(int n = 0; n < highest->second.size(); n++){
-						t_info = &multi_align_info.at(highest->second.at(n));
-						add += reads.at(t_info->a_read).fragments.at(t_info->start + m); 
-						// m is added because multiple fragments can align to single fragment from base read. 
-						// So such case we are not updating the start hence we need to add m.	
-
+						t_info = &multi_align_info.at(highest->second.at(n));						
+						if(t_info->reversed){
+							add += reads.at(t_info->a_read).fragments.at(t_info->start - m);
+						}
+						else{
+							add += reads.at(t_info->a_read).fragments.at(t_info->start + m);
+						}
+						// m is added because multiple fragments can align to single fragment from base read.
+						// So such case we are not updating the start hence we need to add m.							
 					}
 					
 					/* Adding average to corrected read */
@@ -333,11 +371,21 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 		/* Update start of every alignment info */
 		for(int j = 0; j < multi_align_info.size(); j++){
 			if(multi_align_info.at(j).diff.at(b_ptr) == 8){
-				multi_align_info.at(j).start += 1;
+				if(multi_align_info.at(j).reversed){
+					multi_align_info.at(j).start -= 1;
+				}
+				else{
+					multi_align_info.at(j).start += 1;
+				}
 			}
 			else if(multi_align_info.at(j).diff.at(b_ptr) != -1){
-				multi_align_info.at(j).start += multi_align_info.at(j).diff.at(b_ptr);
-			}			
+				if(multi_align_info.at(j).reversed){
+					multi_align_info.at(j).start -= multi_align_info.at(j).diff.at(b_ptr);
+				}
+				else{
+					multi_align_info.at(j).start += multi_align_info.at(j).diff.at(b_ptr);
+				}
+			}
 		}
 	}
 	

@@ -27,6 +27,7 @@ struct AdjAlignmentDifference{
 	unsigned int a_read;   // Aligned target read
 	int start;             // The first fragment from target read which is aligned to base reads
 	std::vector<int> diff;  // Stores number of fragments aligning to each base-read-fragment (difference between adjacent fragment number after alignment)
+	bool reversed; 			// True if reversed alignment is produced
 };
 
 class Aligner{
