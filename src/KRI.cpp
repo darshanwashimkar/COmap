@@ -34,7 +34,7 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 			/* Save reads for later processing */
 			reads.push_back(temp_read);
 	
-			/* Create K-mers from read */
+			/* Create K-mers from read in forward direction */
 			int head = 0;
 		
 			while(head+K <= qfrags.size()){
@@ -57,6 +57,31 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 				}
 							
 				head++;
+			}
+
+			/* Create K-mers from read in reverse direction */
+			head = qfrags.size() - 1;
+			
+			while(head-(K-1) >= 0){
+				string kmer = "";
+				for(unsigned int i = 0; i < K; i++){
+					kmer = kmer + " "+std::to_string(qfrags.at(head - i));
+				}
+
+				/* Create vectore to store read number corresponding to given kmer */
+				std::vector<unsigned int> read_no(1, (unsigned int)((line_number/3)- 1));
+
+				/* Check if key already exit if not then insert */				
+				std::pair<std::unordered_map<std::string, std::vector<unsigned int> >::iterator, bool> iter;
+				iter = kmer_map.insert (pair<std::string,std::vector<unsigned int> >(kmer,read_no) ); 
+ 
+				/* if key exist then add the read number to the hash map data structure */
+				if (iter.second==false) {
+
+				    iter.first->second.push_back((unsigned int)((line_number/3)- 1));
+				}
+							
+				head--;
 			}
 		}			
 	}			

@@ -149,7 +149,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 		alignment_data.reversed = true;
 		if(rev_alignment.ref_restr_al_sites.size() > 0){			
 			b_ptr = rev_alignment.ref_restr_al_sites[rev_alignment.ref_restr_al_sites.size()-1];
-			alignment_data.start = rev_alignment.tar_restr_al_sites[1];
+			alignment_data.start = rev_alignment.tar_restr_al_sites[0] - 1;
 		}
 
 		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>0; k--){
@@ -321,7 +321,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 				
 					for(int n = 0; n < highest->second.size(); n++){
 						t_info = &multi_align_info.at(highest->second.at(n));						
-						if(t_info->reversed){
+						if(t_info->reversed){							
 							add += reads.at(t_info->a_read).fragments.at(t_info->start - m);
 						}
 						else{
@@ -367,11 +367,11 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 			}
 			consensus.push_back(std::make_pair((highest->first-1), highest->second.size()));
 		}
-
+		
 		/* Update start of every alignment info */
-		for(int j = 0; j < multi_align_info.size(); j++){
+		for(int j = 0; j < multi_align_info.size(); j++){			
 			if(multi_align_info.at(j).diff.at(b_ptr) == 8){
-				if(multi_align_info.at(j).reversed){
+				if(multi_align_info.at(j).reversed){					
 					multi_align_info.at(j).start -= 1;
 				}
 				else{
