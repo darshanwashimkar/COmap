@@ -1,6 +1,7 @@
 #include "KRI.hpp"
 
 extern int K;
+extern int MIN_FRAG_IN_READ;
 
 using namespace std;
 
@@ -26,7 +27,7 @@ void KmerReadIndex::readFileAndCreateIndex(std::ifstream &infile, std::vector<Re
 			split(line, '\t' , qfrags, temp_read);
 
 			/* remove all short reads - having read_length < 10 */
-			if(qfrags.size() < 10){
+			if(qfrags.size() < MIN_FRAG_IN_READ){
 				continue;
 			}				
 			temp_read.name = read_name;

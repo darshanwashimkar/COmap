@@ -13,6 +13,7 @@ int NUMBER_OF_BLOCKS = 20;
 int MIN_COMMON_K_IN_READS = 3;
 int MIN_CONSENSUS = 4;
 double S_VARIENCE = 0.33;
+int MIN_FRAG_IN_READ = 10;
 
 using namespace std;
 

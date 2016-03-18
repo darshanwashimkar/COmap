@@ -15,6 +15,7 @@ extern int MIN_COMMON_K_IN_READS;
 extern int MIN_CONSENSUS;
 extern unsigned int count_updated_r;
 
+
 using namespace std;
 
 Aligner::Aligner(unsigned int br, std::unordered_map<unsigned int, uint8_t> &rel_read_map){
