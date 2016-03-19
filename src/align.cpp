@@ -91,10 +91,10 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 
 	int b_ptr = 0;
 
-	if(for_score > rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
-		alignment_data.reversed = false;		
+	if(for_score >= rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
+		alignment_data.reversed = false;
 		if(for_alignment.ref_restr_al_sites.size() > 0){
-			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];		     	
+			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];
 			alignment_data.start = for_alignment.tar_restr_al_sites[for_alignment.tar_restr_al_sites.size()-1];
 
 /*			if(b_ptr > this->min_index)
@@ -146,7 +146,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 			for_alignment.output_alignment(cout);
 		}
 	}
-	else if(for_score <= rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
+	else if(for_score < rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
 		alignment_data.reversed = true;
 		if(rev_alignment.ref_restr_al_sites.size() > 0){			
 			b_ptr = rev_alignment.ref_restr_al_sites[rev_alignment.ref_restr_al_sites.size()-1];
