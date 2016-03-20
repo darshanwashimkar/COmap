@@ -85,13 +85,14 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	double t_mult = 0;
 	
 	if(debug){
+		std::cout<<"alignment for "<<tr.read_name<<" and "<<br.read_name<<std::endl;
 		std::cout<<"fs: \t"<<for_score<<"  \trs: \t" <<rev_score<<std::endl;
 		std::cout<<"fs_t: \t"<<for_t_score<<"  \t\trs_t: \t"<<rev_t_score<<std::endl;
 	}
 
 	int b_ptr = 0;
 
-	if(for_score >= rev_score && for_t_score > t_score_thresh && for_score > score_thresh){
+	if(for_score >= rev_score &&  for_score > score_thresh){
 		alignment_data.reversed = false;
 		if(for_alignment.ref_restr_al_sites.size() > 0){
 			b_ptr = for_alignment.ref_restr_al_sites[for_alignment.ref_restr_al_sites.size()-1];
@@ -146,7 +147,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 			for_alignment.output_alignment(cout);
 		}
 	}
-	else if(for_score < rev_score && rev_t_score > t_score_thresh && rev_score > score_thresh ){
+	else if(for_score < rev_score &&  rev_score > score_thresh ){
 		alignment_data.reversed = true;
 		if(rev_alignment.ref_restr_al_sites.size() > 0){			
 			b_ptr = rev_alignment.ref_restr_al_sites[rev_alignment.ref_restr_al_sites.size()-1];
