@@ -80,8 +80,8 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 	double for_t_score = for_alignment.Tmax;
 	double rev_t_score = rev_alignment.Tmax;
 
-	double score_thresh = 25;
-	double t_score_thresh = 8;
+	double score_thresh = 8;
+	double t_score_thresh = 0;
 	double t_mult = 0;
 	
 	if(debug){
