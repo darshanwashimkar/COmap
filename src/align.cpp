@@ -353,7 +353,7 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 					deletion_corrected += (highest->first - no_of_minus_one - 2);
 					if(p_error_count){
 						for(int a = 0; a < (highest->first - no_of_minus_one - 2); a++){
-							cout<<"-"<<(b_ptr + a)<<" ";
+							cout<<"-"<<(b_ptr)<<" ";
 						}
 					}
 				}
