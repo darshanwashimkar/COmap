@@ -151,7 +151,7 @@ void Aligner::alignPair(om_read &br, om_read &tr, unsigned int tar_r_no){
 		alignment_data.reversed = true;
 		if(rev_alignment.ref_restr_al_sites.size() > 0){			
 			b_ptr = rev_alignment.ref_restr_al_sites[rev_alignment.ref_restr_al_sites.size()-1];
-			alignment_data.start = rev_alignment.tar_restr_al_sites[0] - 1;
+			alignment_data.start =  (rev_alignment.target_map.map_read.size() - rev_alignment.tar_restr_al_sites[rev_alignment.tar_restr_al_sites.size()-1])-1;			
 		}
 
 		for(int k=rev_alignment.ref_restr_al_sites.size()-1; k>0; k--){
@@ -324,10 +324,10 @@ void Aligner::fixIndelErrors(std::vector<Read> & reads, std::vector<Read> & corr
 					for(int n = 0; n < highest->second.size(); n++){
 						t_info = &multi_align_info.at(highest->second.at(n));						
 						if(t_info->reversed){							
-							add += reads.at(t_info->a_read).fragments.at(t_info->start - m);
+							add += reads.at(t_info->a_read).fragments.at(t_info->start - m);							
 						}
 						else{
-							add += reads.at(t_info->a_read).fragments.at(t_info->start + m);
+							add += reads.at(t_info->a_read).fragments.at(t_info->start + m);							
 						}
 						// m is added because multiple fragments can align to single fragment from base read.
 						// So such case we are not updating the start hence we need to add m.							
