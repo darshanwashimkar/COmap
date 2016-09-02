@@ -15,9 +15,9 @@ using namespace std;
 
 int main(int argc, char *argv[])    
 {
-    double readarry1[] = {4.123, 5.123, 2.315, 4.152, 9.432, 11.212, 8.271, 7.456, 4.564, 9.179, 34.473, 2.682, 13.115, 6.171, 4.170, 22.259, 3.319, 3.281, 7.171, 3.170, 12.259, 9.319, 12.181};
+    double readarry2[] = {9.525, 3.625, 2.092, 2.164, 2.687, 18.491, 24.824, 16.194, 9.543, 12.578, 2.358, 12.732, 7.121, 8.955, 22.943, 16.428, 1.832};
 
-    double readarry2[] = {11.212, 8.271, 7.456, 4.564, 9.179, 34.473, 2.682, 13.115, 6.171, 4.170, 22.259, 3.319, 3.281, 7.171, 3.170, 12.259, 9.319, 12.181, 15.213, 5.122, 11.123, 13.212, 4.123, 5.112};
+    double readarry1[] = {3.311, 4.464, 2.712, 18.219, 10.314, 13.391, 16.814, 8.918, 8.448, 5.921, 13.014, 7.294, 13.795, 4.143, 6.119, 15.761, 2.010, 22.205, 10.832};
     om_read read1, read2;
     read1.read_name = "5038535_0_1317";
     read1.Enz_name = "SpeI";
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     read2.map_read.assign(readarry2, readarry2+(sizeof(readarry2)/sizeof(readarry2[0])));
     
 
-    scoring_params sp(.2,1.2,.9,7,17.43,0.58, 0.0015, 0.8, 1, 3);
+    scoring_params sp(0.2,1.2,.9, 4,17.43,0.25, 0.01, 0.85, 0.178, 3.5);
 
 	  om_read tar_map = read1; //maps.collection[i];
 	  om_read for_map = read2; //maps.collection[j];
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
 
 	  //rev_alignment.output_alignment(cout);
 
-	  double score_thresh = 25;
-	  double t_score_thresh = 8;
+	  double score_thresh = 8;
+	  double t_score_thresh = 0;
 	  double t_mult = 0;
 
 	cout<<for_score <<"  "<<rev_score<<endl;
